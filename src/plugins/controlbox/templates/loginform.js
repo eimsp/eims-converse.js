@@ -133,7 +133,7 @@ export default (el) => {
     }
     const conn_feedback_message = _converse.connfeedback.get('message');
     return html`
-        <converse-brand-heading></converse-brand-heading>
+<!--        <converse-brand-heading></converse-brand-heading>-->
         <form id="converse-login" class="converse-form" method="post" @submit=${el.onLoginFormSubmitted}>
             <div class="conn-feedback fade-in ${ !pretty_status ? 'hidden' : feedback_class}">
                 <p class="feedback-subject">${ pretty_status }</p>
