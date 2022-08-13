@@ -1,28 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html class="no-js" lang="en">
 <head>
     <title>Converse</title>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Converse XMPP/Jabber Chat" />
-    <meta name="author" content="JC Brand" />
-    <meta name="keywords" content="xmpp chat webchat converse.js" />
-    <link rel="manifest" href="./manifest.json">
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Converse XMPP/Jabber Chat"/>
     <link rel="shortcut icon" type="image/ico" href="images/favicon.ico"/>
-    <link type="text/css" rel="stylesheet" media="screen" href="dist/website.css" />
-    <link type="text/css" rel="stylesheet" media="screen" href="dist/converse.css" />
-    <script src="https://cdn.conversejs.org/3rdparty/libsignal-protocol.min.js"></script>
-    <script src="dist/converse.js"></script>
-</head>
+    <link rel="stylesheet" type="text/css" media="screen" href="dist/converse.min.css">
+    <script src="dist/converse.min.js" charset="utf-8"></script>
 
-<body class="reset" style="background-color: var(--global-background-color)">
+    <script src="https://chattest.deribit.com/packages/actions/actions.js"></script>
+    <link type="text/css" rel="stylesheet" media="screen" href="https://chattest.deribit.com/packages/search/search.css" />
+    <script src="https://chattest.deribit.com/packages/search/jspdf.debug.js"></script>
+    <script src="https://chattest.deribit.com/packages/search/jspdf.plugin.autotable.js"></script>
+    <script src="https://chattest.deribit.com/packages/search/search.js"></script>
+</head>
+<body class="converse-fullscreen">
+<noscript>You need to enable JavaScript to run the Converse.js chat app.</noscript>
 <div id="conversejs-bg"></div>
 <script>
 var configProtocol = (window.location.protocol === 'https:') ? 'wss://' : 'ws://';
 var domainForConverse = 'chattest.deribit.com';
 var configURL = 'wss://chattest.deribit.com:5443/ws';
 
+converse.plugins.add('deribit', {
+    initialize: function () {
+        this._converse.api.elements.registry['converse-muc-chatarea'].prototype.getHelpMessages =
+          function () {
+              return [
+                  `<strong>help menu triggered by /help</strong>`,
+                  ``,
+                  `<strong>command list private:</strong>`,
+                  `<strong>/position [instrument_name]</strong> =  show position`,
+                  `<strong>/deribit_summary [currency] [extended]</strong> = show account summary`,
+                  `<strong>/lastmsg del</strong> = delete last message`,
+                  `<strong>/lastmsg edit</strong> = edit last message to new message`,
+                  `<strong>/trade_volumes</strong> = show trade volumes`,
+                  `<strong>//help</strong>= show all commands`,
+//                        `<strong>/futures</strong> = show futures`,
+                  ``,
+                  `<strong>command list public:</strong>`,
+                  `<strong>/!position [instrument_name]</strong> = show position`,
+//                        `<strong>/!futures</strong> = show futures`,
+                  `<strong>/!trade_volumes</strong> = show trade volumes`
+              ];
+          }
+    }
+});
 converse.initialize({
     whitelisted_plugins: ['deribit','search', 'actions'],
     loglevel: 'debug',
