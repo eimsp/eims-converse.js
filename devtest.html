@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Converse</title>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Converse XMPP/Jabber Chat" />
+    <meta name="author" content="JC Brand" />
+    <meta name="keywords" content="xmpp chat webchat converse.js" />
+    <link rel="manifest" href="./manifest.json">
+    <link rel="shortcut icon" type="image/ico" href="images/favicon.ico"/>
+    <link type="text/css" rel="stylesheet" media="screen" href="dist/website.css" />
+    <link type="text/css" rel="stylesheet" media="screen" href="dist/converse.css" />
+    <script src="https://cdn.conversejs.org/3rdparty/libsignal-protocol.min.js"></script>
+    <script src="dist/converse.js"></script>
+</head>
+
+<body class="reset" style="background-color: var(--global-background-color)">
+<div id="conversejs-bg"></div>
+<script>
+var configProtocol = (window.location.protocol === 'https:') ? 'wss://' : 'ws://';
+var domainForConverse = 'chattest.deribit.com';
+var configURL = 'wss://chattest.deribit.com:5443/ws';
+
+converse.initialize({
+    whitelisted_plugins: ['deribit','search', 'actions'],
+    loglevel: 'debug',
+    authentication: 'login',
+    auto_away: 60,
+    theme: 'dracula',
+    keepalive: true,
+    show_desktop_notifications: true,
+    ping_interval: 20,
+    muc_show_info_messages: [],
+    muc_show_logs_before_join: true,
+    allow_registration: false,
+    auto_reconnect: true,
+    websocket_url: configURL,
+    message_archiving: 'always',
+    play_sounds: true,
+    notify_all_room_messages: true,
+    view_mode: 'fullscreen',
+    allow_adhoc_commands: true,
+    allow_bookmarks: true,
+    allow_message_corrections: 'all',
+    allow_message_retraction: 'all',
+    archived_messages_page_size: 50,
+    auto_list_rooms: true,
+    default_domain: domainForConverse,
+    domain_placeholder: domainForConverse,
+    enable_muc_push: true,
+    enable_smacks: true,
+    locked_domain: domainForConverse,
+    message_limit: 2048,
+    hide_offline_users: true,
+    allow_non_roster_messaging: true,
+    muc_disable_slash_commands: ['help', 'subject', 'topic', 'admin', 'ban', 'clear', 'deop', 'destroy', 'kick', 'me', 'member', 'modtools', 'mute', 'nick', 'op', 'owner', 'register', 'revoke','voice'],
+    muc_history_max_stanzas: 0
+});
+    // converse.plugins.add('converse-debug', {
+    //     initialize () {
+    //         const { _converse } = this;
+    //         window._converse = _converse;
+    //     }
+    // });
+    //
+    // // converse.initialize({
+    // //     auto_away: 300,
+    // //     enable_smacks: true,
+    // //     loglevel: 'debug',
+    // //     prune_messages_above: 100,
+    // //     message_archiving: 'always',
+    // //     muc_respect_autojoin: true,
+    // //     muc_show_logs_before_join: true,
+    // //     notify_all_room_messages: ['discuss@conference.conversejs.org'],
+    // //     view_mode: 'fullscreen',
+    // //     websocket_url: 'wss://conversejs.org/xmpp-websocket',
+    // //     // websocket_url: 'ws://chat.example.org:5380/xmpp-websocket',
+    // //     whitelisted_plugins: ['converse-debug'],
+    // // });
+    //
+    // const config = {
+    //     assets_path: './dist/',
+    //     authentication: 'login',
+    //     auto_away: 300,
+    //     auto_reconnect: true,
+    //     discover_connection_methods: false,
+    //     websocket_url: 'wss://chattest.deribit.com:5443/ws',
+    //     // bosh_service_url: 'https://chattest.deribit.com/http-bind/',
+    //     view_mode: 'fullscreen',
+    //     loglevel: 'debug',
+    //     muc_disable_slash_commands: ['help', 'subject', 'topic', 'admin', 'ban', 'clear', 'deop', 'destroy', 'kick', 'me', 'member', 'modtools', 'mute', 'nick', 'op', 'owner', 'register', 'revoke','voice'],
+    //     whitelisted_plugins: [
+    //         "converse-debug",
+    //         "download-dialog",
+    //         "stickers",
+    //         "toolbar-utilities",
+    //         "search",
+    //         "directory",
+    //         "muc-directory",
+    //         "diagrams",
+    //         "vmsg",
+    //         "screencast",
+    //         "jitsimeet",
+    //         "location",
+    //         "http-auth",
+    //         "actions",
+    //         "voicechat",
+    //         "galene",
+    //         // "polls"
+    //         "adaptive-cards"
+    //     ]
+    // };
+    //
+    // converse.initialize( config )
+</script>
+</body>
+</html>
