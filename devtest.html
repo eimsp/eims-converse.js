@@ -21,6 +21,7 @@
 <script>
 var configProtocol = (window.location.protocol === 'https:') ? 'wss://' : 'ws://';
 var domainForConverse = 'chattest.deribit.com';
+var mucDomain = `conference.${domainForConverse}`;
 var configURL = 'wss://chattest.deribit.com:5443/ws';
 
 converse.plugins.add('deribit', {
@@ -76,6 +77,8 @@ converse.initialize({
     enable_muc_push: true,
     enable_smacks: true,
     locked_domain: domainForConverse,
+    locked_muc_domain: true,
+    muc_domain: mucDomain,
     message_limit: 2048,
     hide_offline_users: true,
     allow_non_roster_messaging: true,
