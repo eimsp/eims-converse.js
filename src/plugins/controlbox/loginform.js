@@ -94,7 +94,7 @@ class LoginForm extends CustomElement {
         const response = await fetch(`${protocol + default_domain}/oauth/authorization_token`, {
             method: 'post',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-            body: `username=${encodeURIComponent(jid)}&password=${encodeURIComponent(pwd)}&response_type=token&client_id=1&redirect_uri=&scope=get_roster sasl_auth&state=1&ttl=315360000`
+            body: `username=${encodeURIComponent(jid)}&password=${encodeURIComponent(pwd)}&response_type=token&client_id=1&redirect_uri=&scope=get_roster sasl_auth&state=1`
         })
 
         const dataUrl = response.url;
