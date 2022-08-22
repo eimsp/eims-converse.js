@@ -71,6 +71,7 @@ export default BootstrapModal.extend({
 
     initialize () {
         this.items = [];
+        this.filterValue = '';
         this.loading_items = false;
 
         BootstrapModal.prototype.initialize.apply(this, arguments);
@@ -86,18 +87,29 @@ export default BootstrapModal.extend({
         this.model.save('feedback_text', '');
     },
 
-    toHTML () {
+  toHTML () {
         return tpl_muc_list(
             Object.assign(this.model.toJSON(), {
                 'show_form': !api.settings.get('locked_muc_domain'),
                 'server_placeholder': this.model.get('muc_domain') || __('conference.example.org'),
-                'items': this.items,
+                'items': this.getItems(),
+                'filterValue': this.filterValue,
                 'loading_items': this.loading_items,
                 'openRoom': ev => this.openRoom(ev),
                 'setDomainFromEvent': ev => this.setDomainFromEvent(ev),
                 'submitForm': ev => this.showRooms(ev),
-                'toggleRoomInfo': ev => this.toggleRoomInfo(ev)
+                'toggleRoomInfo': ev => this.toggleRoomInfo(ev),
+                'filterRooms': ev => this.filterRooms(ev),
             }));
+    },
+
+    getItems () {
+      return this.items.filter(item => item.name.toLowerCase().includes(this.filterValue));
+    },
+
+    filterRooms (ev) {
+      this.filterValue = ev.target.value.toLowerCase();
+      this.render();
     },
 
     openRoom (ev) {

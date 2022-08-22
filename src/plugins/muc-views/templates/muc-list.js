@@ -26,6 +26,21 @@ const form = (o) => {
     `;
 }
 
+function filterForm(o){
+    const i18n_placeholder = __('Filter');
+    return html`
+        <form class="converse-form list-chatrooms" onsubmit="event.preventDefault(); return false;">
+            <div class="form-group">
+              <input type="text" 
+                @keyup=${o.filterRooms}
+                name="filter-room" 
+                placeholder="${i18n_placeholder}"
+                class="form-control"/>
+            </div>
+        </form>
+    `;
+
+}
 
 const tpl_item = (o, item) => {
     const i18n_info_title = __('Show more information on this groupchat');
@@ -62,9 +77,10 @@ export default (o) => {
                 <div class="modal-body d-flex flex-column">
                     <span class="modal-alert"></span>
                     ${o.show_form ? form(o) : '' }
+                    ${filterForm(o)}
                     <ul class="available-chatrooms list-group">
                         ${ o.loading_items ? html`<li class="list-group-item"> ${spinner()} </li>` : '' }
-                        ${ o.feedback_text ? html`<li class="list-group-item active">${ o.feedback_text }</li>` : '' }
+                        ${ o.filterValue !=='' && o.items.length === 0 ? html`<li class="list-group-item active">${ __('No groupchats found') }</li>` : '' }
                         ${repeat(o.items, item => item.jid, item => tpl_item(o, item))}
                     </ul>
                 </div>
