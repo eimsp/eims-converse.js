@@ -5,6 +5,11 @@
 @import "./muc-forms.scss";
 
 .conversejs {
+    .available-chatroom{
+        .destroy-room {opacity: 0;}
+        &:hover .destroy-room {opacity: 1;}
+
+    }
     .chatroom {
         width: var(--chatroom-width);
         @media screen and (max-height: $mobile-landscape-height){

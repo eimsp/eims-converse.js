@@ -59,6 +59,12 @@ const tpl_item = (o, item) => {
                 data-room-jid="${item.jid}"
                 title="${i18n_info_title}"
                 href="#"></a>
+                <a href="#" class="list-item-action destroy-room"
+                   @click="${o.deleteRoom}"
+                   data-room-jid="${item.jid}"
+                >
+                  <converse-icon class="fas fa-trash-alt" size="1em" color="var(--inverse-link-color)"></converse-icon>
+                </a>
             </div>
         </li>
     `;

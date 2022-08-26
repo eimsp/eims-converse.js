@@ -7,8 +7,12 @@ import tpl_spinner from "templates/spinner.js";
 import { __ } from 'i18n';
 import { _converse, api, converse } from "@converse/headless/core";
 import { getAttributes } from '@converse/headless/shared/parsers';
+import Confirm from "../../modal/confirm";
+import MUCListModal from 'plugins/muc-views/modals/muc-list.js';
+import { Model } from '@converse/skeletor/src/model.js';
 
-const { Strophe, $iq, sizzle } = converse.env;
+
+const { Strophe, $iq, sizzle, $msg } = converse.env;
 const u = converse.env.utils;
 
 
@@ -100,6 +104,7 @@ export default BootstrapModal.extend({
                 'submitForm': ev => this.showRooms(ev),
                 'toggleRoomInfo': ev => this.toggleRoomInfo(ev),
                 'filterRooms': ev => this.filterRooms(ev),
+                'deleteRoom': ev => this.deleteRoom(ev)
             }));
     },
 
@@ -123,6 +128,47 @@ export default BootstrapModal.extend({
     toggleRoomInfo (ev) {
         ev.preventDefault();
         toggleRoomInfo(ev);
+    },
+
+    async deleteRoom (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      const jid = ev.currentTarget.getAttribute('data-room-jid');
+      const nodeName = Strophe.getNodeFromJid(jid);
+
+      const msg = $msg({
+        to: this.model.get('muc_domain'),
+        from: _converse.connection.jid,
+        type: 'chat'
+      }).c('body').t(`/muc del ${nodeName}`)
+
+        const result = await this.confirmDestroyModal(__("Are you sure you want to delete the %1$s room?", jid));
+
+        if (result) {
+          api.send(msg)
+        }
+
+    },
+
+    async confirmDestroyModal (title) {
+      const model = new Model({title, messages: [], fields: [], 'type': 'confirm'})
+      const confirm = new Confirm({model});
+
+      confirm.el.addEventListener('hide.bs.modal', () => {
+        api.modal.show(MUCListModal, {'model': this.model})
+      });
+
+      confirm.show();
+
+      let result;
+      try {
+        result = await confirm.confirmation;
+      } catch (e) {
+        result = false;
+      }
+      confirm.remove();
+      return result;
     },
 
     onDomainChange () {
