@@ -7,8 +7,12 @@ import tpl_spinner from "templates/spinner.js";
 import { __ } from 'i18n';
 import { _converse, api, converse } from "@converse/headless/core";
 import { getAttributes } from '@converse/headless/shared/parsers';
+import Confirm from "../../modal/confirm";
+import MUCListModal from 'plugins/muc-views/modals/muc-list.js';
+import { Model } from '@converse/skeletor/src/model.js';
 
-const { Strophe, $iq, sizzle } = converse.env;
+
+const { Strophe, $iq, sizzle, $msg } = converse.env;
 const u = converse.env.utils;
 
 
@@ -73,6 +77,8 @@ export default BootstrapModal.extend({
         this.items = [];
         this.filterValue = '';
         this.loading_items = false;
+        const params = arguments[0];
+        this.deleteRoomJid = params['deletedJid'];
 
         BootstrapModal.prototype.initialize.apply(this, arguments);
         this.listenTo(this.model, 'change:muc_domain', this.onDomainChange);
@@ -100,11 +106,19 @@ export default BootstrapModal.extend({
                 'submitForm': ev => this.showRooms(ev),
                 'toggleRoomInfo': ev => this.toggleRoomInfo(ev),
                 'filterRooms': ev => this.filterRooms(ev),
+                'deleteRoom': ev => this.deleteRoom(ev)
             }));
     },
 
     getItems () {
-      return this.items.filter(item => item.name.toLowerCase().includes(this.filterValue));
+      return this.items.filter(item => {
+        let jidSkip = false;
+
+        if(this.deleteRoomJid) {
+          jidSkip = item.jid === this.deleteRoomJid;
+        }
+        return item.name.toLowerCase().includes(this.filterValue) && !jidSkip;
+      });
     },
 
     filterRooms (ev) {
@@ -123,6 +137,50 @@ export default BootstrapModal.extend({
     toggleRoomInfo (ev) {
         ev.preventDefault();
         toggleRoomInfo(ev);
+    },
+
+    async deleteRoom (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      const jid = ev.currentTarget.getAttribute('data-room-jid');
+      const nodeName = Strophe.getNodeFromJid(jid);
+      const msg = $msg({
+        to: this.model.get('muc_domain'),
+        from: _converse.connection.jid,
+        type: 'groupchat'
+      }).c('body').t(`/muc del ${nodeName}`)
+
+        const result = await this.confirmDestroyModal(__("Are you sure you want to delete the %1$s room?", jid), jid);
+
+        if (result) {
+          api.send(msg);
+        }
+
+    },
+
+    async confirmDestroyModal (title, jid) {
+      const model = new Model({title, messages: [], fields: [], 'type': 'confirm'});
+      const confirm = new Confirm({model});
+
+      let result;
+
+      confirm.el.addEventListener('hide.bs.modal', () => {
+        const deletedJid = result ? jid : null;
+        api.modal.show(MUCListModal, {'model': this.model, deletedJid})
+      });
+
+      confirm.show();
+
+      try {
+        await confirm.confirmation;
+        result = true;
+      } catch (e) {
+        result = false;
+      }
+
+      confirm.remove();
+      return result;
     },
 
     onDomainChange () {
