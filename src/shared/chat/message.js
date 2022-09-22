@@ -150,7 +150,7 @@ export default class Message extends CustomElement {
 
     isCommand () {
         const text = this.model.get('body');
-        let commands = api.settings.get('muc_commands_do_not_show');
+        let commands = api.settings.get('muc_skip_usr_commands_msg');
         if ((commands && commands.length > 0) || text) {
             commands = commands.join('|');
             return text.match(new RegExp('^\/(' + commands + ')(\\s+|$)'));
