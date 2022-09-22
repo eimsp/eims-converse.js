@@ -148,6 +148,15 @@ export default class Message extends CustomElement {
         return this.model.get('retracted') || this.model.get('moderated') === 'retracted';
     }
 
+    isCommand () {
+        const text = this.model.get('body');
+        let commands = api.settings.get('muc_commands_do_not_show');
+        if ((commands && commands.length > 0) || text) {
+            commands = commands.join('|');
+            return text.match(new RegExp('^\/(' + commands + ')(\\s+|$)'));
+        }
+    }
+
     hasMentions () {
         const is_groupchat = this.model.get('type') === 'groupchat';
         return is_groupchat && this.model.get('sender') === 'them' && this.chatbox.isUserMentioned(this.model);
@@ -191,6 +200,7 @@ export default class Message extends CustomElement {
             'is_first_unread': this.chatbox.get('first_unread_id') === this.model.get('id'),
             'is_me_message': this.model.isMeCommand(),
             'is_retracted': this.isRetracted(),
+            'is_command': this.isCommand(),
             'username': this.model.getDisplayName(),
             'should_show_avatar': this.shouldShowAvatar(),
         }
