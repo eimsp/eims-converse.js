@@ -158,7 +158,6 @@ converse.plugins.add('converse-muc', {
             'muc_domain': undefined,
             'muc_fetch_members': true,
             'muc_history_max_stanzas': undefined,
-            'muc_skip_usr_commands_msg': [],
             'muc_instant_rooms': true,
             'muc_nickname_from_jid': false,
             'muc_send_probes': false,
