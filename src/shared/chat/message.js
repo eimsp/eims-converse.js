@@ -151,9 +151,8 @@ export default class Message extends CustomElement {
     isCommand () {
         const text = this.model.get('body');
 
-        if (text && text.startsWith('/')) {
-            return !!text.match(/\/\w+/);
-        }
+        //don't display messages start with '/' (commands)
+        return text && text.startsWith('/');
     }
 
     hasMentions () {
