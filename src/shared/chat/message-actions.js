@@ -4,6 +4,7 @@ import { __ } from 'i18n';
 import { _converse, api, converse } from '@converse/headless/core.js';
 import { getAppSettings } from '@converse/headless/shared/settings/utils.js';
 import { getMediaURLs } from '@converse/headless/shared/chat/utils.js';
+import UserBanModal from 'modals/user-ban.js';
 import { html } from 'lit';
 import { isMediaURLDomainAllowed, isDomainWhitelisted } from '@converse/headless/utils/url.js';
 import { until } from 'lit/directives/until.js';
@@ -65,23 +66,10 @@ class MessageActions extends CustomElement {
         `;
     }
 
-    async onMessageBanButtonClicked (ev) {
+    onMessageBanButtonClicked (ev) {
         ev.preventDefault();
 
-        const nick = this.model.get('nick');
-        const result = await api.confirm(__('Are you sure you want to ban %1$s?', nick));
-
-        if (result) {
-            const msg = $msg({
-                to: this.model.collection.chatbox.get('jid'),
-                from: _converse.connection.jid,
-                type: 'groupchat'
-            }).c('body').t('/ban ' + nick);
-
-            api.send(msg);
-
-        }
-
+        api.modal.show(UserBanModal, { model: this.model }, ev);
     }
 
     async onMessageUnbanButtonClicked (ev) {
@@ -320,7 +308,7 @@ class MessageActions extends CustomElement {
                 'i18n_text': 'Ban',
                 'handler': ev => this.onMessageBanButtonClicked(ev),
                 'button_class': 'chat-msg__action-ban',
-                'icon_class': 'fa fa-user-minus',
+                'icon_class': 'fa fa-user-lock',
                 'name': 'ban',
             });
 
