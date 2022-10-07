@@ -1,7 +1,6 @@
 import { __ } from 'i18n';
 import { html } from "lit";
 import { repeat } from 'lit/directives/repeat.js';
-import { modal_close_button, modal_header_close_button } from "plugins/modal/templates/buttons.js"
 import spinner from "templates/spinner.js";
 
 
@@ -14,6 +13,7 @@ const form = (o) => {
             <div class="form-group">
                 <label for="chatroom">${i18n_server_address}:</label>
                 <input type="text"
+                    autofocus
                     @change=${o.setDomainFromEvent}
                     value="${o.muc_domain || ''}"
                     required="required"
@@ -72,26 +72,15 @@ const tpl_item = (o, item) => {
 
 
 export default (o) => {
-    const i18n_list_chatrooms = __('Query for Groupchats');
     return html`
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="muc-list-modal-label">${i18n_list_chatrooms}</h5>
-                    ${modal_header_close_button}
-                </div>
-                <div class="modal-body d-flex flex-column">
-                    <span class="modal-alert"></span>
-                    ${o.show_form ? form(o) : '' }
-                    ${filterForm(o)}
-                    <ul class="available-chatrooms list-group">
-                        ${ o.loading_items ? html`<li class="list-group-item"> ${spinner()} </li>` : '' }
-                        ${ o.filterValue !=='' && o.items.length === 0 ? html`<li class="list-group-item active">${ __('No groupchats found') }</li>` : '' }
-                        ${repeat(o.items, item => item.jid, item => tpl_item(o, item))}
-                    </ul>
-                </div>
-                <div class="modal-footer">${modal_close_button}</div>
-            </div>
-        </div>
+        ${o.show_form ? form(o) : ''}
+        ${filterForm(o)}
+        <ul class="available-chatrooms list-group">
+            ${o.loading_items ? html`
+                <li class="list-group-item"> ${spinner()}</li>` : ''}
+            ${o.filterValue !== '' && o.items.length === 0 ? html`
+                <li class="list-group-item active">${__('No groupchats found')}</li>` : ''}
+            ${repeat(o.items, item => item.jid, item => tpl_item(o, item))}
+        </ul>
     `;
 }

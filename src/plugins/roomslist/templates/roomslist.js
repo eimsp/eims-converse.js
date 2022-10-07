@@ -1,5 +1,5 @@
-import AddMUCModal from 'plugins/muc-views/modals/add-muc.js';
-import MUCListModal from 'plugins/muc-views/modals/muc-list.js';
+import 'plugins/muc-views/modals/add-muc.js';
+import 'plugins/muc-views/modals/muc-list.js';
 import { __ } from 'i18n';
 import { _converse, api } from "@converse/headless/core";
 import { html } from "lit";
@@ -80,12 +80,12 @@ export default (o) => {
         <div class="d-flex controlbox-padded">
             <span class="w-100 controlbox-heading controlbox-heading--groupchats">${i18n_heading_chatrooms}</span>
             <a class="controlbox-heading__btn show-list-muc-modal"
-                @click=${(ev) => api.modal.show(MUCListModal, { 'model': o.model }, ev)}
+                @click=${(ev) => api.modal.show('converse-muc-list-modal', { 'model': o.model }, ev)}
                 title="${i18n_title_list_rooms}" data-toggle="modal" data-target="#muc-list-modal">
                     <converse-icon class="fa fa-list-ul right" size="1em"></converse-icon>
             </a>
             <a class="controlbox-heading__btn show-add-muc-modal"
-                @click=${(ev) => api.modal.show(AddMUCModal, { 'model': o.model }, ev)}
+                @click=${(ev) => api.modal.show('converse-add-muc-modal', { 'model': o.model }, ev)}
                 title="${i18n_title_new_room}" data-toggle="modal" data-target="#add-chatrooms-modal">
                     <converse-icon class="fa fa-plus right" size="1em"></converse-icon>
             </a>
@@ -93,7 +93,11 @@ export default (o) => {
 
         <div class="list-container list-container--openrooms ${ o.rooms.length ? '' : 'hidden' }">
             <a class="list-toggle open-rooms-toggle controlbox-padded" title="${i18n_desc_rooms}" @click=${o.toggleRoomsList}>
-            <span class="fa ${ (o.toggle_state === _converse.OPENED) ? 'fa-caret-down' : 'fa-caret-right' }"></span> ${__('Open Groupchats')}</a>
+            <converse-icon
+                class="fa ${ (o.toggle_state === _converse.OPENED) ? 'fa-caret-down' : 'fa-caret-right' }"
+                size="1em"
+                color="var(--muc-color)">
+            </converse-icon> ${__('Open Groupchats')}</a>
             <div class="items-list rooms-list open-rooms-list ${ o.collapsed && 'collapsed' }">
                 ${ o.rooms.map(room => room_item(Object.assign({room}, o))) }
             </div>
