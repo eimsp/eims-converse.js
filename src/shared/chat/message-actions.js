@@ -4,13 +4,14 @@ import { __ } from 'i18n';
 import { _converse, api, converse } from '@converse/headless/core.js';
 import { getAppSettings } from '@converse/headless/shared/settings/utils.js';
 import { getMediaURLs } from '@converse/headless/shared/chat/utils.js';
+import UserBanModal from 'modals/user-ban.js';
 import { html } from 'lit';
 import { isMediaURLDomainAllowed, isDomainWhitelisted } from '@converse/headless/utils/url.js';
 import { until } from 'lit/directives/until.js';
 
 import './styles/message-actions.scss';
 
-const { Strophe, u } = converse.env;
+const { Strophe, u, $msg } = converse.env;
 
 class MessageActions extends CustomElement {
     static get properties () {
@@ -63,6 +64,31 @@ class MessageActions extends CustomElement {
                 ${o.i18n_text}
             </button>
         `;
+    }
+
+    onMessageBanButtonClicked (ev) {
+        ev.preventDefault();
+
+        api.modal.show(UserBanModal, { model: this.model }, ev);
+    }
+
+    async onMessageUnbanButtonClicked (ev) {
+        ev.preventDefault();
+
+        const nick = this.model.get('nick');
+        const result = await api.confirm(__('Are you sure you want to unban %1$s?', nick));
+
+        if (result) {
+            const msg = $msg({
+                to: this.model.collection.chatbox.get('jid'),
+                from: _converse.connection.jid,
+                type: 'groupchat'
+            }).c('body').t('/unban ' + nick);
+
+            api.send(msg);
+
+        }
+
     }
 
     async onMessageEditButtonClicked (ev) {
@@ -274,6 +300,24 @@ class MessageActions extends CustomElement {
                 'button_class': 'chat-msg__action-edit',
                 'icon_class': 'fa fa-pencil-alt',
                 'name': 'edit',
+            });
+        }
+
+        if (this.model.get('sender') !== 'me') {
+            buttons.push({
+                'i18n_text': 'Ban',
+                'handler': ev => this.onMessageBanButtonClicked(ev),
+                'button_class': 'chat-msg__action-ban',
+                'icon_class': 'fa fa-user-lock',
+                'name': 'ban',
+            });
+
+            buttons.push({
+                'i18n_text': 'Unban',
+                'handler': ev => this.onMessageUnbanButtonClicked(ev),
+                'button_class': 'chat-msg__action-unban',
+                'icon_class': 'fa fa-user-plus',
+                'name': 'unban',
             });
         }
 

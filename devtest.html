@@ -24,6 +24,13 @@ var domainForConverse = 'chattest.deribit.com';
 var mucDomain = `conference.${domainForConverse}`;
 var configURL = 'wss://chattest.deribit.com:5443/ws';
 
+converse.plugins.add('converse-debug', {
+    initialize () {
+        const { _converse } = this;
+        window._converse = _converse;
+    }
+});
+
 converse.plugins.add('deribit', {
     initialize: function () {
         this._converse.api.elements.registry['converse-muc-chatarea'].prototype.getHelpMessages =
