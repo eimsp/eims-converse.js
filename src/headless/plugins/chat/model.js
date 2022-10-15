@@ -920,7 +920,7 @@ const ChatBox = ModelWithContact.extend({
      * const chat = api.chats.get('buddy1@example.org');
      * chat.sendMessage({'body': 'hello world'});
      */
-    async sendMessage (attrs) {
+    async sendMessage (attrs, options) {
         attrs = await this.getOutgoingMessageAttributes(attrs);
         let message = this.messages.findWhere('correcting')
         if (message) {
@@ -943,7 +943,7 @@ const ChatBox = ModelWithContact.extend({
             });
         } else {
             this.setEditable(attrs, (new Date()).toISOString());
-            message = await this.createMessage(attrs);
+            message = await this.createMessage(attrs, options);
         }
 
         try {
