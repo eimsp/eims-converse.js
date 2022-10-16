@@ -87,7 +87,7 @@
     "karma-jasmine": "^5.0.0",
     "karma-jasmine-html-reporter": "^1.7.0",
     "karma-webpack": "^5.0.0",
-    "lerna": "^5.1.8",
+    "lerna": "^5.5.1",
     "mini-css-extract-plugin": "^2.6.0",
     "minimist": "^1.2.6",
     "po-loader": "0.6.1",
@@ -105,7 +105,6 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "5.14.0",
     "bootstrap": "^4.6.0",
     "bootstrap.native": "^2.0.27",
     "client-compress": "^2.2.2",

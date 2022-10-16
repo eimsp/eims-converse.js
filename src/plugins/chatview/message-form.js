@@ -115,7 +115,9 @@ export default class MessageForm extends ElementView {
             // It seems that pasted files disappear from the event payload after
             // the event has finished, which apparently happens during async
             // processing in sendFiles(). So we copy the array here.
-            this.model.sendFiles(Array.from(ev.clipboardData.files));
+
+            //disable ability to send files from clipboard
+            //this.model.sendFiles(Array.from(ev.clipboardData.files));
             return;
         }
         this.model.set({'draft': ev.clipboardData.getData('text/plain')});
