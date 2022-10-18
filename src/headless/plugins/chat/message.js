@@ -141,8 +141,10 @@ const MessageMixin = {
         if (prev_model === null) {
             return false;
         }
-        const date = dayjs(this.get('time'));
+        const isRetracted = prev_model.get('retracted') || prev_model.get('moderated') === 'retracted';
+        const date = dayjs(this.get('time'))
         return this.get('from') === prev_model.get('from') &&
+            !isRetracted &&
             !this.isMeCommand() && !prev_model.isMeCommand() &&
             !!this.get('is_encrypted') === !!prev_model.get('is_encrypted') &&
             this.get('type') === prev_model.get('type') && this.get('type') !== 'info' &&
