@@ -48,6 +48,12 @@ export default class Message extends CustomElement {
 
         this.listenTo(this.chatbox, 'change:first_unread_id', () => this.requestUpdate());
         this.listenTo(this.model, 'change', () => this.requestUpdate());
+
+        const prevMsg = this.getPrevMessage();
+        if(prevMsg){
+            this.listenTo(prevMsg, 'change:retracted change:moderated', () => this.requestUpdate());
+        }
+
         this.model.vcard && this.listenTo(this.model.vcard, 'change', () => this.requestUpdate());
 
         if (this.model.get('type') === 'groupchat') {
@@ -166,6 +172,14 @@ export default class Message extends CustomElement {
 
     getOccupantRole () {
         return this.model.occupant?.get('role');
+    }
+
+    getPrevMessage() {
+        if (this.model.isFollowup()) {
+            const messages = this.model.collection.models;
+            const idx = messages.indexOf(this.model);
+            return idx ? messages[idx - 1] : null;
+        }
     }
 
     getExtraMessageClasses () {
