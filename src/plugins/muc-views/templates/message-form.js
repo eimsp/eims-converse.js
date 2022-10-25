@@ -1,8 +1,6 @@
 import { __ } from 'i18n';
 import { api } from "@converse/headless/core";
 import { html } from "lit";
-import { resetElementHeight } from 'plugins/chatview/utils.js';
-
 
 export default (o) => {
     const label_message = o.composing_spoiler ? __('Hidden message') : __('Message');
@@ -20,7 +18,7 @@ export default (o) => {
                     autofocus
                     type="text"
                     @drop=${o.onDrop}
-                    @input=${resetElementHeight}
+                    @input=${o.onInput}
                     @keydown=${o.onKeyDown}
                     @keyup=${o.onKeyUp}
                     @paste=${o.onPaste}
