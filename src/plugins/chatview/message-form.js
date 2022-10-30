@@ -177,6 +177,9 @@ export default class MessageForm extends ElementView {
             this.model.setChatState(_converse.COMPOSING);
         }
     }
+    getKeyForDraftMsg() {
+        return 'converseDraftMsg' + this.model.get('jid');
+    }
 
     async onFormSubmitted (ev) {
         ev?.preventDefault?.();
@@ -212,6 +215,9 @@ export default class MessageForm extends ElementView {
             textarea.value = '';
             u.removeClass('correcting', textarea);
             textarea.style.height = 'auto';
+
+            sessionStorage.removeItem(this.getKeyForDraftMsg());
+
             this.model.set({'draft': ''});
         }
         if (api.settings.get('view_mode') === 'overlayed') {

@@ -1,10 +1,21 @@
 import MessageForm from 'plugins/chatview/message-form.js';
 import tpl_muc_message_form from './templates/message-form.js';
 import { _converse, api, converse } from "@converse/headless/core";
+import { resetElementHeight } from 'plugins/chatview/utils.js';
+import debounce from 'lodash-es/debounce';
 import { getAutoCompleteListItem } from './utils.js';
 
 
 export default class MUCMessageForm extends MessageForm {
+    initialize() {
+        this.debouncedCacheMsg = debounce(this.cacheMsg, 100);
+        api.listen.on('chatBoxClosed', (model) => {
+            if ((model.get('type') === _converse.CHATROOMS_TYPE)
+                && (model.get('jid') === this.model.get('jid'))) {
+                this.removeCacheMsg();
+            }
+        });
+    }
 
     async connectedCallback () {
         super.connectedCallback();
@@ -12,11 +23,14 @@ export default class MUCMessageForm extends MessageForm {
     }
 
     toHTML () {
+        const messageText = sessionStorage.getItem(this.getKeyForDraftMsg()) || '';
+        this.model.set({'draft': messageText});
         return tpl_muc_message_form(
             Object.assign(this.model.toJSON(), {
                 'hint_value': this.querySelector('.spoiler-hint')?.value,
-                'message_value': this.querySelector('.chat-textarea')?.value,
+                'message_value': messageText,
                 'onChange': ev => this.model.set({'draft': ev.target.value}),
+                'onInput': ev => this.onInput(ev),
                 'onDrop': ev => this.onDrop(ev),
                 'onKeyDown': ev => this.onKeyDown(ev),
                 'onKeyUp': ev => this.onKeyUp(ev),
@@ -61,6 +75,20 @@ export default class MUCMessageForm extends MessageForm {
             return;
         }
         super.onKeyDown(ev);
+    }
+
+    onInput (ev) {
+        resetElementHeight(ev);
+        this.debouncedCacheMsg(ev);
+    }
+
+    cacheMsg (ev) {
+        const key = this.getKeyForDraftMsg();
+        sessionStorage.setItem(key, ev.target.value);
+    }
+
+    removeCacheMsg () {
+        sessionStorage.removeItem(this.getKeyForDraftMsg());
     }
 
     onKeyUp (ev) {
