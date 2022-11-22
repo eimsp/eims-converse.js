@@ -21,11 +21,68 @@
             _ = converse.env._;
             __ = _converse.__;
 
+            class SearchResults extends _converse.CustomElement {
+                static get properties () {
+                    return {
+                        messages: {type: Object},
+                        isLoadingMsg: {type: Boolean},
+                        keyword: {type: String}
+                    }
+                }
+
+                render () {
+                    if(this.isLoadingMsg){
+                        return tpl_is_loading();
+                    }
+                    if(this.messages === null){
+                        return;
+                    }
+                    return tpl_search_results(this.messages, this.keyword);
+                }
+
+            }
+            function tpl_search_results(messages, keyword) {
+                const tagRegExp = new RegExp("(\\b" + keyword + "\\b)", "im");
+                return html`
+                    <table>
+                        <tr>
+                            <th>Date</th>
+                            <th>Person</th>
+                            <th>Message</th>
+                        </tr>
+                        ${messages.map(function (msg) {
+                            const body = msg.querySelector('body').innerHTML;
+                            const delay = msg.querySelector('forwarded').querySelector('delay');
+                            const from = msg.querySelector('forwarded').querySelector('message').getAttribute('from');
+                            const time = delay ? delay.getAttribute('stamp') : dayjs().format();
+                            const pretty_time = dayjs(time).format('MMM DD HH:mm:ss');
+                            const pretty_from = from.split("/")[1];
+                            const msgId = msg.querySelector('message').getAttribute('id');
+                            //var tagged = tagRegExp ? body.replace(tagRegExp, html`<span style=background-color:#FF9;color:#555;>$1</span>`) : body;
+                            return html`
+                                <tr style="cursor: pointer;" data-id="${msgId}">
+                                    <td>${pretty_time}</td>
+                                    <td>${pretty_from}</td>
+                                    <td>${body}</td>
+                                </tr>`
+                        })}
+                    </table>`;
+            }
+
+            function tpl_is_loading(){
+                return html`Loading...`;
+            }
+
+            _converse.api.elements.define('search-results-table', SearchResults);
+
+
             SearchDialog = BootstrapModal.extend({
                 id: "plugin-search-modal",
                 initialize() {
                     BootstrapModal.prototype.initialize.apply(this, arguments);
                     this.listenTo(this.model, 'change', this.render);
+                    this.model.set('isLoadingMsg', false);
+                    this.model.set('messages', null);
                 },
                 toHTML() {
                     return html`<div class="modal-dialog modal-xl" role="document">
@@ -44,7 +101,9 @@
                                  </div>
                              </form>
                              <p/>
-                             <div id="pade-search-results"></div>
+                             <div id="pade-search-results">
+                               <search-results-table .keyword="${this.model.get("keyword")}" .messages="${this.model.get('messages')}" ?isLoadingMsg="${this.model.get('isLoadingMsg')}"></search-results-table>
+                             </div>
                          </div>
                          <div class="modal-footer">
                             <button type="button" class="btn btn-primary btn-search">Search</button>
@@ -83,8 +142,8 @@
                 },
 
                 search() {
-                    var keyword = this.el.querySelector("#pade-search-keywords").value.trim();
-                    var searchNick = this.el.querySelector("#search-nick").value.trim();
+                    const keyword = this.el.querySelector("#pade-search-keywords").value.trim();
+                    const searchNick = this.el.querySelector("#search-nick").value.trim();
                     this.model.set("keyword", keyword)
                     this.model.set("searchNick", searchNick)
                     this.doSearch();
@@ -103,112 +162,48 @@
                     }
                 },
 
-                doPDF() {
-                    const margins = {
-                        top: 70,
-                        bottom: 40,
-                        left: 30,
-                        width: 550
-                    };
-                    const pdf = new jsPDF('p','pt','a4');
-
-                    pdf.autoTable({
-                        head: [['Date', 'Person', 'Message']],
-                        body: this.model.get("pdf_body"),
-                        columnStyles: {
-                            0: {cellWidth: 100},
-                            1: {cellWidth: 100},
-                            2: {cellWidth: 300}
-                        }
-                    })
-
-                    const view = this.model.get("view");
-                    const roomLabel = view.model.getDisplayName() || view.model.get("jid");
-                    pdf.save(roomLabel + '.pdf')
-                },
                 doSearch() {
-                    var view = this.model.get("view");
-                    var jid = view.model.get("jid");
-                    var type = view.model.get("type");
-                    var groupchat = view.model.get("type") == "chatroom";
-                    var method = _converse.api.settings.get("search_method");
+                    const view = this.model.get("view");
+                    const jid = view.model.get("jid");
+                    const groupchat = view.model.get("type") == "chatroom";
+                    const method = _converse.api.settings.get("search_method");
 
-                    var that = this;
-                    var keyword = that.model.get("keyword");
-                    var searchNick = that.model.get("searchNick");
-                    var searchRegExp = undefined;
-                    var tagRegExp = undefined;
-                    var pdf_body = [];
+                    const that = this;
+                    const keyword = that.model.get("keyword");
+                    const searchNick = that.model.get("searchNick");
+                    let searchRegExp;
 
                     console.debug("doSearch", keyword, jid);
 
-                    if (keyword != "")
-                    {
+                    if (keyword != '') {
                         searchRegExp = new RegExp('^(.*)(\s?' + keyword + ')', 'im');
-                        tagRegExp = new RegExp("(\\b" + keyword + "\\b)", "im");
                     }
-                    var searchResults = that.el.querySelector("#pade-search-results");
-                    searchResults.innerHTML = "Loading...";
 
-                    var html = "<table><tr><th>Date</th><th>Person</th><th>Message</th></tr>";
+                    that.model.set('isLoadingMsg', true);
 
-                    if (method == "mam")
-                    {
-                        var opt = {before: '', max: 999, 'groupchat': groupchat, 'with': jid/*, 'withtext': keyword*/};
+                    if (method == "mam") {
+                        const opt = {before: '', max: 999, 'groupchat': groupchat, 'with': jid};
 
                         if(searchNick){
                             opt['with_nick'] = searchNick;
                             opt['start'] = getSearchPeriod();
                         }
-                        _converse.api.archive.query(opt).then(function(result)
-                        {
-                            const messages = result.messages;
+                        _converse.api.archive.query(opt).then(function(result) {
+                            that.model.set('isLoadingMsg', false);
 
-                            for (var i=0; i<messages.length; i++)
-                            {
-                                let msg = messages[i];
-                                if (msg.querySelector('body'))
-                                {
-                                    var body = msg.querySelector('body').innerHTML;
-                                    var delay = msg.querySelector('forwarded').querySelector('delay');
-                                    var from = msg.querySelector('forwarded').querySelector('message').getAttribute('from');
-                                    var time = delay ? delay.getAttribute('stamp') : dayjs().format();
-                                    var pretty_time = dayjs(time).format('MMM DD HH:mm:ss');
-                                    var pretty_from = type === "chatroom" ? from.split("/")[1] : from.split("@")[0];
-                                    const msgId = msg.querySelector('message').getAttribute('id');
-
-                                    if (!searchRegExp || searchRegExp.test(body)) pdf_body.push([pretty_time, pretty_from, body]);
-
-                                    html =  html + makeHtml(searchRegExp, tagRegExp, body, pretty_time, pretty_from, msgId);
+                            const messages = result.messages.filter(function (msg){
+                                const msgBody = msg.querySelector('body');
+                                if (!msgBody){
+                                    return false;
                                 }
-                            }
+                                const body = msgBody.innerHTML;
+                                return !searchRegExp || searchRegExp.test(body);
+                            });
 
-                            html =  html + "</table>";
-                            searchResults.innerHTML = html;
-                            that.model.set("pdf_body", pdf_body);
+                            that.model.set('messages', messages);
+                        }).catch(function (){
+                            that.model.set('isLoadingMsg', false);
                         });
-                    }
-                    else {
-                        var messages = view.model.messages.models;
-
-                        for (var i=0; i<messages.length; i++)
-                        {
-                            let msg = messages[i];
-                            var body = msg.get('message');
-                            var from = msg.get('from');
-                            var pretty_time = dayjs(msg.get('time')).format('MMM DD HH:mm:ss');
-                            var pretty_from = from;
-                            const msgId = msg.querySelector('message').getAttribute('id');
-
-                            if (from) pretty_from =  msg.get('type') === "groupchat" ? from.split("/")[1] : from.split("@")[0];
-                            if (!searchRegExp || searchRegExp.test(body)) pdf_body.push([pretty_time, pretty_from, body]);
-
-                            html =  html + makeHtml(searchRegExp, tagRegExp, body, pretty_time, pretty_from, msgId);
-                        }
-
-                        html =  html + "</table>";
-                        searchResults.innerHTML = html;
-                        that.model.set("pdf_body", pdf_body);
                     }
                 }
             });
@@ -279,18 +274,6 @@
         searchDialog = new SearchDialog({ 'model': new Model({view: chatview}) });
         searchDialog.model.set("keyword", null);
         searchDialog.show(ev);
-    }
-
-    function makeHtml(searchRegExp, tagRegExp, body, pretty_time, pretty_from, msgId)
-    {
-        let html = "";
-
-        if (!searchRegExp || searchRegExp.test(body))
-        {
-            var tagged = tagRegExp ? body.replace(tagRegExp, "<span style=background-color:#FF9;color:#555;>$1</span>") : body;
-            html = html + "<tr style='cursor: pointer;' data-id='"+msgId+"'><td>" + pretty_time + "</td><td>" + pretty_from + "</td><td>" + tagged + "</td></tr>";
-        }
-        return html;
     }
 
 }));
