@@ -13,11 +13,16 @@ const { u } = converse.env;
 export default class MessageForm extends ElementView {
     initialize() {
         this.debouncedCacheMsg = debounce(this.cacheMsg, 100);
+
         api.listen.on('chatBoxClosed', (model) => {
             if ((model.get('jid') === this.model.get('jid'))) {
                 this.removeCacheMsg();
             }
         });
+
+        api.listen.on("beforeLogout", () => {
+            this.removeCacheMsg();
+        })
     }
 
     async connectedCallback () {
