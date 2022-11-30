@@ -14,8 +14,7 @@ export default class MessageForm extends ElementView {
     initialize() {
         this.debouncedCacheMsg = debounce(this.cacheMsg, 100);
         api.listen.on('chatBoxClosed', (model) => {
-            if ((model.get('type') === _converse.CHATROOMS_TYPE)
-                && (model.get('jid') === this.model.get('jid'))) {
+            if ((model.get('jid') === this.model.get('jid'))) {
                 this.removeCacheMsg();
             }
         });
