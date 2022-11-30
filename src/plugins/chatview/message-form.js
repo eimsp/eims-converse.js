@@ -4,11 +4,22 @@ import { __ } from 'i18n';
 import { _converse, api, converse } from "@converse/headless/core.js";
 import { parseMessageForCommands } from './utils.js';
 import { prefixMentions } from '@converse/headless/utils/core.js';
+import debounce from 'lodash-es/debounce';
+import { resetElementHeight } from 'plugins/chatview/utils.js';
 
 const { u } = converse.env;
 
 
 export default class MessageForm extends ElementView {
+    initialize() {
+        this.debouncedCacheMsg = debounce(this.cacheMsg, 100);
+        api.listen.on('chatBoxClosed', (model) => {
+            if ((model.get('type') === _converse.CHATROOMS_TYPE)
+                && (model.get('jid') === this.model.get('jid'))) {
+                this.removeCacheMsg();
+            }
+        });
+    }
 
     async connectedCallback () {
         super.connectedCallback();
@@ -32,12 +43,15 @@ export default class MessageForm extends ElementView {
     }
 
     toHTML () {
+        const messageText = sessionStorage.getItem(this.getKeyForDraftMsg()) || '';
+        this.model.set({'draft': messageText});
         return tpl_message_form(
             Object.assign(this.model.toJSON(), {
                 'onDrop': ev => this.onDrop(ev),
                 'hint_value': this.querySelector('.spoiler-hint')?.value,
-                'message_value': this.querySelector('.chat-textarea')?.value,
+                'message_value': messageText,
                 'onChange': ev => this.model.set({'draft': ev.target.value}),
+                'onInput': ev => this.onInput(ev),
                 'onKeyDown': ev => this.onKeyDown(ev),
                 'onKeyUp': ev => this.onKeyUp(ev),
                 'onPaste': ev => this.onPaste(ev),
@@ -122,6 +136,21 @@ export default class MessageForm extends ElementView {
         }
         this.model.set({'draft': ev.clipboardData.getData('text/plain')});
     }
+
+    onInput (ev) {
+        resetElementHeight(ev);
+        this.debouncedCacheMsg(ev);
+    }
+
+    cacheMsg (ev) {
+        const key = this.getKeyForDraftMsg();
+        sessionStorage.setItem(key, ev.target.value);
+    }
+
+    removeCacheMsg () {
+        sessionStorage.removeItem(this.getKeyForDraftMsg());
+    }
+
 
     onKeyUp (ev) {
         this.model.set({'draft': ev.target.value});
