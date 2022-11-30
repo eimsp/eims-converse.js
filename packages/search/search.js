@@ -26,7 +26,8 @@
                     return {
                         messages: {type: Object},
                         isLoadingMsg: {type: Boolean},
-                        keyword: {type: String}
+                        keyword: {type: String},
+                        isGroupChat: {type: Boolean}
                     }
                 }
 
@@ -37,12 +38,12 @@
                     if(this.messages === null){
                         return;
                     }
-                    return tpl_search_results(this.messages, this.keyword);
+                    return tpl_search_results(this.messages, this.keyword, this.isGroupChat);
                 }
 
             }
-            function tpl_search_results(messages, keyword) {
-                const tagRegExp = new RegExp("(\\b" + keyword + "\\b)", "im");
+            function tpl_search_results(messages, keyword, isGroupChat) {
+                //const tagRegExp = new RegExp("(\\b" + keyword + "\\b)", "im");
                 return html`
                     <table>
                         <tr>
@@ -56,7 +57,7 @@
                             const from = msg.querySelector('forwarded').querySelector('message').getAttribute('from');
                             const time = delay ? delay.getAttribute('stamp') : dayjs().format();
                             const pretty_time = dayjs(time).format('MMM DD HH:mm:ss');
-                            const pretty_from = from.split("/")[1];
+                            const pretty_from = isGroupChat ? from.split('/')[1] : from.split('@')[0];
                             const msgId = msg.querySelector('message').getAttribute('id');
                             //var tagged = tagRegExp ? body.replace(tagRegExp, html`<span style=background-color:#FF9;color:#555;>$1</span>`) : body;
                             return html`
@@ -85,6 +86,8 @@
                     this.model.set('messages', null);
                 },
                 toHTML() {
+                    const isGroupChat = this.model.get('view').model.get('type') === 'chatroom';
+
                     return html`<div class="modal-dialog modal-xl" role="document">
                         <div class="modal-content">
                          <div class="modal-header">
@@ -96,13 +99,13 @@
                                  <div class="form-group">
                                     <input value="${this.model.get('keyword') || ''}" id="pade-search-keywords" class="form-control" type="text" placeholder="Type a query and press [Enter] to search" />
                                  </div>
-                                 <div class="form-group">
+                                 <div class="form-group" style="display: ${isGroupChat ? 'block' : 'none'}">
                                      <input id="search-nick" class="form-control" type="text" placeholder="Search by nick" >
                                  </div>
                              </form>
                              <p/>
-                             <div id="pade-search-results">
-                               <search-results-table .keyword="${this.model.get("keyword")}" .messages="${this.model.get('messages')}" ?isLoadingMsg="${this.model.get('isLoadingMsg')}"></search-results-table>
+                             <div id="pade-search-results" >
+                               <search-results-table .keyword="${this.model.get("keyword")}" .messages="${this.model.get('messages')}" ?isLoadingMsg="${this.model.get('isLoadingMsg')}" ?isGroupChat="${isGroupChat}"></search-results-table>
                              </div>
                          </div>
                          <div class="modal-footer">
