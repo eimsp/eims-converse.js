@@ -226,6 +226,14 @@ export default {
                     stanza.c('field', {'var':'with'}).c('value')
                         .t(options['with']).up().up();
                 }
+                if (options['with_nick']) {
+                    stanza.c('field', {'var': 'with_nick'}).c('value')
+                        .t(options['with_nick']).up().up();
+                }
+                if (options['withtext']) {
+                    stanza.c('field', {'var': 'withtext'}).c('value')
+                        .t(options['withtext']).up().up();
+                }
                 ['start', 'end'].forEach(t => {
                     if (options[t]) {
                         const date = dayjs(options[t]);

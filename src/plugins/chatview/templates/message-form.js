@@ -1,7 +1,6 @@
 import { __ } from 'i18n';
 import { api } from "@converse/headless/core";
 import { html } from "lit";
-import { resetElementHeight } from '../utils.js';
 
 
 export default (o) => {
@@ -21,7 +20,7 @@ export default (o) => {
                 type="text"
                 enterkeyhint="send"
                 @drop=${o.onDrop}
-                @input=${resetElementHeight}
+                @input=${o.onInput}
                 @keydown=${o.onKeyDown}
                 @keyup=${o.onKeyUp}
                 @paste=${o.onPaste}
