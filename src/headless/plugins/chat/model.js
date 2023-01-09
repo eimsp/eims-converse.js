@@ -218,6 +218,9 @@ const ChatBox = ModelWithContact.extend({
                 !this.handleChatMarker(attrs) &&
                 !(await this.handleRetraction(attrs))
         ) {
+            if(attrs.replace_id && !attrs.is_archived && !this.messages.findWhere({'msgid': attrs.replace_id})) {
+                return;
+            }
             this.setEditable(attrs, attrs.time);
 
             if (attrs['chat_state'] && attrs.sender === 'them') {
