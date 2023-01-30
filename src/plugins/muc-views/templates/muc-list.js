@@ -77,10 +77,10 @@ export default (o) => {
         ${filterForm(o)}
         <ul class="available-chatrooms list-group">
             ${o.loading_items ? html`
-                <li class="list-group-item"> ${spinner()}</li>` : ''}
+                <li class="list-group-item"> ${ spinner() }</li>` : ''}
             ${o.filterValue !== '' && o.items.length === 0 ? html`
                 <li class="list-group-item active">${__('No groupchats found')}</li>` : ''}
-            ${repeat(o.items, item => item.jid, item => tpl_item(o, item))}
+            ${ repeat(o.items, (item) => item.jid, (item) => tpl_item(o, item)) }
         </ul>
     `;
 }
