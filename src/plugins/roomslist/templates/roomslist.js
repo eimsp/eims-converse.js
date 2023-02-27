@@ -16,7 +16,7 @@ const bookmark = (o) => {
                @click=${o.removeBookmark}
                title="${ o.bookmarked ? i18n_remove_bookmark : i18n_add_bookmark }">
 
-                <converse-icon class="fa fa-bookmark" size="1.2em" color="var(--inverse-link-color)"></converse-icon>
+                <converse-icon class="fa fa-bookmark" size="1.2em" color="${ o.currently_open(o.room) ? 'var(--inverse-link-color)' : '' }"></converse-icon>
             </a>`;
     } else {
         return html`
@@ -26,7 +26,7 @@ const bookmark = (o) => {
                @click=${o.addBookmark}
                title="${ o.bookmarked ? i18n_remove_bookmark : i18n_add_bookmark }">
 
-                <converse-icon class="fa fa-bookmark" size="1.2em" color="var(--inverse-link-color)"></converse-icon>
+                <converse-icon class="fa fa-bookmark" size="1.2em" color="${ o.currently_open(o.room) ? 'var(--inverse-link-color)' : '' }"></converse-icon>
             </a>`;
     }
 }
@@ -43,7 +43,7 @@ const room_item = (o) => {
         <div class="list-item controlbox-padded available-chatroom d-flex flex-row ${ o.currently_open(o.room) ? 'open' : '' } ${ has_unread_msgs ? 'unread-msgs' : '' }"
             data-room-jid="${o.room.get('jid')}">
 
-            ${ o.room.get('num_unread') ? unread_indicator(o) : (o.room.get('has_activity') ? activity_indicator(o) : '') }
+            ${ o.room.get('num_unread') ? unread_indicator(o) : (o.room.get('has_activity') ? activity_indicator() : '') }
 
             <a class="list-item-link open-room available-room w-100"
                 data-room-jid="${o.room.get('jid')}"
@@ -57,7 +57,7 @@ const room_item = (o) => {
                 title="${__('Show more information on this groupchat')}"
                 @click=${o.showRoomDetailsModal}>
 
-                <converse-icon class="fa fa-info-circle" size="1.2em" color="var(--inverse-link-color)"></converse-icon>
+                <converse-icon class="fa fa-info-circle" size="1.2em" color="${ o.currently_open(o.room) ? 'var(--inverse-link-color)' : '' }""></converse-icon>
             </a>
 
             <a class="list-item-action close-room"
@@ -66,7 +66,7 @@ const room_item = (o) => {
                 title="${i18n_leave_room}"
                 @click=${o.closeRoom}>
 
-                <converse-icon class="fa fa-sign-out-alt" size="1.2em" color="var(--inverse-link-color)"></converse-icon>
+                <converse-icon class="fa fa-sign-out-alt" size="1.2em" color="${ o.currently_open(o.room) ? 'var(--inverse-link-color)' : '' }"></converse-icon>
             </a>
         </div>`;
 }
@@ -76,9 +76,27 @@ export default (o) => {
     const i18n_heading_chatrooms = __('Groupchats');
     const i18n_title_list_rooms = __('Query for groupchats');
     const i18n_title_new_room = __('Add a new groupchat');
+    const i18n_show_bookmarks = __('Show bookmarked groupchats');
+    const is_closed = o.model.get('toggle_state') === _converse.CLOSED;
     return html`
         <div class="d-flex controlbox-padded">
-            <span class="w-100 controlbox-heading controlbox-heading--groupchats">${i18n_heading_chatrooms}</span>
+            <span class="w-100 controlbox-heading controlbox-heading--groupchats">
+                <a class="list-toggle open-rooms-toggle" title="${i18n_desc_rooms}" @click=${o.toggleRoomsList}>
+                    <converse-icon
+                        class="fa ${ is_closed ? 'fa-caret-right' : 'fa-caret-down' }"
+                        size="1em"
+                        color="var(--muc-color)"></converse-icon>
+                    ${i18n_heading_chatrooms}
+                </a>
+            </span>
+
+            <a class="controlbox-heading__btn show-bookmark-list-modal"
+                @click=${(ev) => api.modal.show('converse-bookmark-list-modal', { 'model': o.model }, ev)}
+                title="${i18n_show_bookmarks}"
+                data-toggle="modal">
+                    <converse-icon class="fa fa-bookmark right" size="1em"></converse-icon>
+            </a>
+
             <a class="controlbox-heading__btn show-list-muc-modal"
                 @click=${(ev) => api.modal.show('converse-muc-list-modal', { 'model': o.model }, ev)}
                 title="${i18n_title_list_rooms}" data-toggle="modal" data-target="#muc-list-modal">
@@ -92,13 +110,7 @@ export default (o) => {
         </div>
 
         <div class="list-container list-container--openrooms ${ o.rooms.length ? '' : 'hidden' }">
-            <a class="list-toggle open-rooms-toggle controlbox-padded" title="${i18n_desc_rooms}" @click=${o.toggleRoomsList}>
-            <converse-icon
-                class="fa ${ (o.toggle_state === _converse.OPENED) ? 'fa-caret-down' : 'fa-caret-right' }"
-                size="1em"
-                color="var(--muc-color)">
-            </converse-icon> ${__('Open Groupchats')}</a>
-            <div class="items-list rooms-list open-rooms-list ${ o.collapsed && 'collapsed' }">
+            <div class="items-list rooms-list open-rooms-list ${ is_closed ? 'collapsed' : '' }">
                 ${ o.rooms.map(room => room_item(Object.assign({room}, o))) }
             </div>
         </div>`;

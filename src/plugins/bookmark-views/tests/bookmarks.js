@@ -116,7 +116,6 @@ describe("A chat room", function () {
         _converse.connection._dataRecv(mock.createRequest(stanza));
         await u.waitUntil(() => view.model.get('bookmarked'));
         expect(view.model.get('bookmarked')).toBeTruthy();
-        await u.waitUntil(() => view.querySelector('.toggle-bookmark')?.title === 'Unbookmark this groupchat');
         expect(u.hasClass('on-button', view.querySelector('.toggle-bookmark')), true);
         // We ignore this IQ stanza... (unless it's an error stanza), so
         // nothing to test for here.
@@ -490,42 +489,5 @@ describe("Bookmarks", function () {
         expect(_converse.bookmarks.models.length).toBe(2);
         expect(_converse.bookmarks.get('theplay@conference.shakespeare.lit').get('autojoin')).toBe(true);
         expect(_converse.bookmarks.get('another@conference.shakespeare.lit').get('autojoin')).toBe(false);
-    }));
-});
-
-describe("When hide_open_bookmarks is true and a bookmarked room is opened", function () {
-
-    it("can be closed", mock.initConverse(
-            [], { hide_open_bookmarks: true }, async function (_converse) {
-
-        await mock.waitForRoster(_converse, 'current', 0);
-        await mock.openControlBox(_converse);
-        await mock.waitUntilBookmarksReturned(_converse);
-
-        // Check that it's there
-        const jid = 'room@conference.example.org';
-        _converse.bookmarks.create({
-            'jid': jid,
-            'autojoin': false,
-            'name':  'The Play',
-            'nick': ' Othello'
-        });
-        expect(_converse.bookmarks.length).toBe(1);
-
-        const u = converse.env.utils;
-        const bookmarks_el = document.querySelector('converse-bookmarks');
-        await u.waitUntil(() => bookmarks_el.querySelectorAll(".open-room").length, 500);
-        const room_els = bookmarks_el.querySelectorAll(".open-room");
-        expect(room_els.length).toBe(1);
-
-        const bookmark = bookmarks_el.querySelector(".open-room");
-        bookmark.click();
-        await u.waitUntil(() => _converse.chatboxviews.get(jid));
-
-        expect(u.hasClass('hidden', bookmarks_el.querySelector(".available-chatroom"))).toBeTruthy();
-        // Check that it reappears once the room is closed
-        const view = _converse.chatboxviews.get(jid);
-        view.close();
-        await u.waitUntil(() => !u.hasClass('hidden', bookmarks_el.querySelector(".available-chatroom")));
     }));
 });

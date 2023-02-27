@@ -1,7 +1,25 @@
 # Changelog
 
-## 10.0.0 (Unreleased)
+## 10.1.1 (Unreleased)
 
+- #3128: Second bookmarked room shows info of the first one
+- Bugfix. Uyghur translations weren't loading
+
+## 10.1.0 (2023-01-07)
+
+- #326: Add the ability to reset your password
+- #2759: Don't automatically log in again if the user manually logged out
+- #2816: Chat highlight behaves odd
+- #2925: File upload is not always enabled
+- #3001: Add option to save SCRAM details and to use them to stay logged in upon reload
+- Add a "Add to Contacts" button in MUC occupant modals
+- Updated tranlsations and new language Uyghur
+
+- New config option [reuse_scram_keys](https://conversejs.org/docs/html/configuration.html#reuse-scram-keys)
+
+## 10.0.0 (2022-10-30)
+
+- Update to Strophe.js 1.6.0 which adds support for SCRAM-SHA-256 and SCRAM-SHA-512
 - Don't automatically convert OpenStreetMap URLs into `geo:` URIs in sent messages
 - Remove the `allow_chat_pending_contacts` config option.
 - Show roster contacts with `subscription` set to `none`
@@ -12,15 +30,19 @@
 - Update `nick` attribute on ChatRoom when user nickname changes
 - Restrict editing of MUC messages to ones with the same XEP-0421 occupant ID
 - Remove unfurls for links removed in a subsequent message correction
+- Bookmarks now appear in a modal and the `hide_open_bookmarks` config setting has been removed.
 - #1004: Stop using fonts to render icons and use SVG instead
 - #2797: Weird unicode characters rendering outside of line-height
 - #2870: Fix for multiple URLs to be linkified when sent together in chat and adds a test for this.
 - #2879: Quotes, lines not aligned to the first line
 - #2925: Fix missing disco-items in browser storage.
 - #2936: Fix documentation about enable_smacks option, which is true by default.
+- #2939: Data forms with a field named "username" are not displayed
 - #3005: Fix MUC messages with a fallback body not rendering.
 - #3007: Fix links becoming text when a message is edited
 - #3018: Fix MUC icons not functioning.
+- #3028: Fix encrypted media from Conversations/Quicksy not properly decrypting
+
 
 ## 9.1.1 (2022-05-05)
 

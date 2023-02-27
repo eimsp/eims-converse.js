@@ -407,7 +407,6 @@ in to their XMPP account.
   So currently if EITHER ``keepalive`` or ``auto_login`` is ``true`` and
   `authentication`_ is set to ``login``, then Converse will try to log the user in.
 
-
 auto_away
 ---------
 
@@ -694,7 +693,7 @@ appear in another.
 .. code-block:: javascript
 
         converse.initialize({
-            connection_options: { 'worker': true }
+            connection_options: { worker: '/dist/shared-connection-worker.js' }
         });
 
 
@@ -961,22 +960,6 @@ hide_offline_users
 * Default:  ``false``
 
 If set to ``true``, then offline users aren't shown in the roster.
-
-hide_open_bookmarks
--------------------
-
-* Default:  ``false`` (``true`` when the `view_mode`_ is set to ``fullscreen``).
-
-This setting applies to the ``converse-bookmarks`` plugin and specfically the
-list of bookmarks shown in the ``Rooms`` tab of the control box.
-
-By default all bookmarks are shown in that list, if this setting is set to
-``true``, then only bookmarks for rooms not currently open (i.e. that the
-current user hasn't joined), are shown.
-
-Makes sense to set this to ``true`` when also using the non-core
-``converse-roomslist`` plugin, which shows a list of currently open (i.e.
-"joined") rooms.
 
 .. _`i18n`:
 
@@ -1834,6 +1817,27 @@ Based on the OGP metadata Converse will render a URL preview (also known as an
 
   This setting, together with the three allowed domain settings above, obsolete
   the ``show_images_inline``, ``embed_audio`` and ``embed_videos`` settings.
+
+
+reuse_scram_keys
+----------------
+
+* Default: ``false``
+
+Most XMPP servers enable the Salted Challenge Response Authentication Mechanism
+or SCRAM for short. This allows the user and the server to mutually
+authenticate *without* the need to transmit the user's password in plaintext.
+
+Assuming the server does not alter the user's password or the
+storage parameters, we can authenticate with the same SCRAM key multiple times.
+
+This opens an opportunity: we can store the user's login credentials in the
+browser without storing the sensitive plaintext password, or the
+need to set up complicated third party backends, like OAuth.
+
+Enabling this option will let Converse save a user's SCRAM keys upon successful
+login, and next time Converse is loaded the user will be automatically logged in
+with those SCRAM keys.
 
 
 .. _`roomconfig_whitelist`:
