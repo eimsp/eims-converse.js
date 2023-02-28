@@ -1,5 +1,5 @@
 import './message-history';
-import tpl_spinner from "templates/spinner.js";
+import tplSpinner from "templates/spinner.js";
 import { CustomElement } from 'shared/components/element.js';
 import {_converse, api} from '@converse/headless/core';
 import { html } from 'lit';
@@ -85,7 +85,7 @@ export default class ChatContent extends CustomElement {
                 .model=${this.model}
                 .messages=${[...this.model.messages.models]}>
             </converse-message-history>
-            ${ this.model.ui?.get('chat-content-spinner-top') ? tpl_spinner() : '' }
+            ${ this.model.ui?.get('chat-content-spinner-top') ? tplSpinner() : '' }
         `;
     }
 

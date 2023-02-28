@@ -1,4 +1,4 @@
-import tpl_spinner from "templates/spinner.js";
+import tplSpinner from "templates/spinner.js";
 import { _converse, api, converse } from "@converse/headless/core.js";
 import { html } from 'lit';
 
@@ -11,7 +11,7 @@ function whenNotConnected (o) {
         return;
     }
     if ([Strophe.Status.RECONNECTING, Strophe.Status.CONNECTING].includes(connection_status)) {
-        return tpl_spinner();
+        return tplSpinner();
     }
     if (o['active-form'] === 'register') {
         return html`<converse-register-panel></converse-register-panel>`;

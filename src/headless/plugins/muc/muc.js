@@ -5,7 +5,6 @@ import log from '../../log';
 import p from '../../utils/parse-helpers';
 import pick from 'lodash-es/pick';
 import sizzle from 'sizzle';
-import u from '../../utils/form';
 import { Model } from '@converse/skeletor/src/model.js';
 import { Strophe, $build, $iq, $msg, $pres } from 'strophe.js/src/strophe';
 import { _converse, api, converse } from '../../core.js';
@@ -18,6 +17,8 @@ import { isUniView, getUniqueId, safeSave } from '../../utils/core.js';
 import { parseMUCMessage, parseMUCPresence } from './parsers.js';
 import { sendMarker } from '../../shared/actions.js';
 import { ROOMSTATUS } from './constants.js';
+
+const { u } = converse.env;
 
 const OWNER_COMMANDS = ['owner'];
 const ADMIN_COMMANDS = ['admin', 'ban', 'deop', 'destroy', 'member', 'op', 'revoke'];
@@ -130,24 +131,38 @@ const ChatRoomMixin = {
     },
 
     /**
+     * Checks whether this MUC qualifies for subscribing to XEP-0437 Room Activity Indicators (RAI)
+     * @method _converse.ChatRoom#isRAICandidate
+     * @returns { Boolean }
+     */
+    isRAICandidate () {
+        return this.get('hidden') && api.settings.get('muc_subscribe_to_rai') && this.getOwnAffiliation() !== 'none';
+    },
+
+    /**
      * Checks whether we're still joined and if so, restores the MUC state from cache.
      * @private
      * @method _converse.ChatRoom#restoreFromCache
      * @returns { Boolean } Returns `true` if we're still joined, otherwise returns `false`.
      */
     async restoreFromCache () {
-        if (this.isEntered() && (await this.isJoined())) {
-            // We've restored the room from cache and we're still joined.
-            await new Promise(r => this.features.fetch({ 'success': r, 'error': r }));
-            await new Promise(r => this.config.fetch({ 'success': r, 'error': r }));
+        if (this.isEntered()) {
             await this.fetchOccupants().catch(e => log.error(e));
-            await this.fetchMessages().catch(e => log.error(e));
-            return true;
-        } else {
-            this.session.save('connection_status', ROOMSTATUS.DISCONNECTED);
-            this.clearOccupantsCache();
-            return false;
+
+            if (this.isRAICandidate()) {
+                this.session.save('connection_status', ROOMSTATUS.DISCONNECTED);
+                this.enableRAI();
+                return true;
+            } else if (await this.isJoined()) {
+                await new Promise(r => this.config.fetch({ 'success': r, 'error': r }));
+                await new Promise(r => this.features.fetch({ 'success': r, 'error': r }));
+                await this.fetchMessages().catch(e => log.error(e));
+                return true;
+            }
         }
+        this.session.save('connection_status', ROOMSTATUS.DISCONNECTED);
+        this.clearOccupantsCache();
+        return false;
     },
 
     /**
@@ -276,10 +291,7 @@ const ChatRoomMixin = {
         const roomstatus = ROOMSTATUS;
         const conn_status = this.session.get('connection_status');
         if (this.get('hidden')) {
-            if (conn_status === roomstatus.ENTERED &&
-                    api.settings.get('muc_subscribe_to_rai') &&
-                    this.getOwnAffiliation() !== 'none') {
-
+            if (conn_status === roomstatus.ENTERED && this.isRAICandidate()) {
                 this.sendMarkerForLastMessage('received', true);
                 await this.leave();
                 this.enableRAI();
@@ -347,7 +359,7 @@ const ChatRoomMixin = {
 
     async onConnectionStatusChanged () {
         if (this.isEntered()) {
-            if (this.get('hidden') && api.settings.get('muc_subscribe_to_rai') && this.getOwnAffiliation() !== 'none') {
+            if (this.isRAICandidate()) {
                 try {
                     await this.leave();
                 } catch (e) {
@@ -549,6 +561,8 @@ const ChatRoomMixin = {
      * @param { XMLElement } stanza
      */
     async handleMessageStanza (stanza) {
+        stanza = stanza.tree?.() ?? stanza;
+
         const type = stanza.getAttribute('type');
         if (type === 'error') {
             return this.handleErrorMessageStanza(stanza);
@@ -755,7 +769,7 @@ const ChatRoomMixin = {
         message.set({
             'retracted': new Date().toISOString(),
             'retracted_id': origin_id,
-            'retraction_id': stanza.nodeTree.getAttribute('id'),
+            'retraction_id': stanza.tree().getAttribute('id'),
             'editable': false
         });
         const result = await this.sendTimedMessage(stanza);
@@ -1928,6 +1942,10 @@ const ChatRoomMixin = {
      * @returns {Promise<boolean>}
      */
     async isJoined () {
+        if (!this.isEntered()) {
+            log.info(`isJoined: not pinging MUC ${this.get('jid')} since we're not entered`);
+            return false;
+        }
         if (!api.connection.connected()) {
             await new Promise(resolve => api.listen.once('reconnected', resolve));
         }
@@ -1952,10 +1970,14 @@ const ChatRoomMixin = {
 
     /**
      * Check whether we're still joined and re-join if not
-     * @async
      * @method _converse.ChatRoom#rejoinIfNecessary
      */
     async rejoinIfNecessary () {
+        if (this.isRAICandidate()) {
+            log.debug(`rejoinIfNecessary: not rejoining hidden MUC "${this.get('jid')}" since we're using RAI`);
+            return true;
+        }
+
         if (!(await this.isJoined())) {
             this.rejoin();
             return true;
