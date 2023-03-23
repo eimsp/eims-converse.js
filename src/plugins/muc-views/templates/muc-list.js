@@ -42,7 +42,7 @@ function filterForm(o){
 
 }
 
-const tpl_item = (o, item) => {
+const tplItem = (o, item) => {
     const i18n_info_title = __('Show more information on this groupchat');
     const i18n_open_title = __('Click to open this groupchat');
     return html`
@@ -80,7 +80,7 @@ export default (o) => {
                 <li class="list-group-item"> ${ spinner() }</li>` : ''}
             ${o.filterValue !== '' && o.items.length === 0 ? html`
                 <li class="list-group-item active">${__('No groupchats found')}</li>` : ''}
-            ${ repeat(o.items, (item) => item.jid, (item) => tpl_item(o, item)) }
+            ${ repeat(o.items, (item) => item.jid, (item) => tplItem(o, item)) }
         </ul>
     `;
 }

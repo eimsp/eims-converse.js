@@ -1,5 +1,5 @@
 import 'shared/components/brand-heading.js';
-import tpl_spinner from 'templates/spinner.js';
+import tplSpinner from 'templates/spinner.js';
 import { REPORTABLE_STATUSES, PRETTY_CONNECTION_STATUS, CONNECTION_STATUS_CSS_CLASS } from '../constants.js';
 import { __ } from 'i18n';
 import { _converse, api } from "@converse/headless/core";
@@ -60,7 +60,7 @@ const password_input = () => {
     `;
 }
 
-const register_link = () => {
+const tplRegisterLink = () => {
     const i18n_create_account = __("Create an account");
     const i18n_hint_no_account = __("Don't have a chat account?");
     return html`
@@ -71,7 +71,7 @@ const register_link = () => {
     `;
 }
 
-const show_register_link = () => {
+const tplShowRegisterLink = () => {
     return api.settings.get('allow_registration') &&
         !api.settings.get("auto_login") &&
         _converse.pluggable.plugins['converse-register'].enabled(_converse);
@@ -106,7 +106,7 @@ const auth_fields = (el) => {
         <fieldset class="form-group buttons">
             <input class="btn btn-primary" type="submit" value="${i18n_login}"/>
         </fieldset>
-        ${ show_register_link() ? register_link() : '' }
+        ${ tplShowRegisterLink() ? tplRegisterLink(el) : '' }
     `;
 }
 
@@ -139,6 +139,6 @@ export default (el) => {
                 <p class="feedback-subject">${ pretty_status }</p>
                 <p class="feedback-message ${ !conn_feedback_message ? 'hidden' : '' }">${conn_feedback_message}</p>
             </div>
-            ${ (_converse.CONNECTION_STATUS[connection_status] === 'CONNECTING') ? tpl_spinner({'classes': 'hor_centered'}) : form_fields(el) }
+            ${ (_converse.CONNECTION_STATUS[connection_status] === 'CONNECTING') ? tplSpinner({'classes': 'hor_centered'}) : form_fields(el) }
         </form>`;
 }

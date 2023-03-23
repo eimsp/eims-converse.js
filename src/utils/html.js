@@ -5,24 +5,24 @@
  */
 import isFunction from 'lodash-es/isFunction';
 import log from '@converse/headless/log';
-import tpl_audio from 'templates/audio.js';
-import tpl_file from 'templates/file.js';
-import tpl_form_captcha from '../templates/form_captcha.js';
-import tpl_form_checkbox from '../templates/form_checkbox.js';
-import tpl_form_help from '../templates/form_help.js';
-import tpl_form_input from '../templates/form_input.js';
-import tpl_form_select from '../templates/form_select.js';
-import tpl_form_textarea from '../templates/form_textarea.js';
-import tpl_form_url from '../templates/form_url.js';
-import tpl_form_username from '../templates/form_username.js';
-import tpl_hyperlink from 'templates/hyperlink.js';
-import tpl_video from 'templates/video.js';
+import tplAudio from 'templates/audio.js';
+import tplFile from 'templates/file.js';
+import tplFormCaptcha from '../templates/form_captcha.js';
+import tplFormCheckbox from '../templates/form_checkbox.js';
+import tplFormHelp from '../templates/form_help.js';
+import tplFormInput from '../templates/form_input.js';
+import tplFormSelect from '../templates/form_select.js';
+import tplFormTextarea from '../templates/form_textarea.js';
+import tplFormUrl from '../templates/form_url.js';
+import tplFormUsername from '../templates/form_username.js';
+import tplHyperlink from 'templates/hyperlink.js';
+import tplVideo from 'templates/video.js';
 import u from '../headless/utils/core';
 import { converse } from '@converse/headless/core';
 import { getURI, isAudioURL, isImageURL, isVideoURL } from '@converse/headless/utils/url.js';
 import { render } from 'lit';
 
-const { sizzle } = converse.env;
+const { sizzle, Strophe } = converse.env;
 
 const APPROVED_URL_PROTOCOLS = ['http', 'https', 'xmpp', 'mailto'];
 
@@ -53,6 +53,93 @@ const XFORM_VALIDATE_TYPE_MAP = {
     'xs:integer': 'number',
     'xs:time': 'time',
 }
+
+
+const EMPTY_TEXT_REGEX = /\s*\n\s*/
+
+function stripEmptyTextNodes (el) {
+    el = el.tree?.() ?? el;
+
+    let n;
+    const text_nodes = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, (node) => {
+        if (node.parentElement.nodeName.toLowerCase() === 'body') {
+            return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+    });
+    while (n = walker.nextNode()) text_nodes.push(n);
+    text_nodes.forEach((n) => EMPTY_TEXT_REGEX.test(n.data) && n.parentElement.removeChild(n))
+
+    return el;
+}
+
+const serializer = new XMLSerializer();
+
+/**
+ * Given two XML or HTML elements, determine if they're equal
+ * @param { XMLElement | HTMLElement } actual
+ * @param { XMLElement | HTMLElement } expected
+ * @returns { Boolean }
+ */
+function isEqualNode (actual, expected) {
+    if (!u.isElement(actual)) throw new Error("Element being compared must be an Element!");
+
+    actual = stripEmptyTextNodes(actual);
+    expected = stripEmptyTextNodes(expected);
+
+    let isEqual = actual.isEqualNode(expected);
+
+    if (!isEqual) {
+        // XXX: This is a hack.
+        // When creating two XML elements, one via DOMParser, and one via
+        // createElementNS (or createElement), then "isEqualNode" doesn't match.
+        //
+        // For example, in the following code `isEqual` is false:
+        // ------------------------------------------------------
+        // const a = document.createElementNS('foo', 'div');
+        // a.setAttribute('xmlns', 'foo');
+        //
+        // const b = (new DOMParser()).parseFromString('<div xmlns="foo"></div>', 'text/xml').firstElementChild;
+        // const isEqual = a.isEqualNode(div); //  false
+        //
+        // The workaround here is to serialize both elements to string and then use
+        // DOMParser again for both (via xmlHtmlNode).
+        //
+        // This is not efficient, but currently this is only being used in tests.
+        //
+        const { xmlHtmlNode } = Strophe;
+        const actual_string = serializer.serializeToString(actual);
+        const expected_string = serializer.serializeToString(expected);
+        isEqual = actual_string === expected_string || xmlHtmlNode(actual_string).isEqualNode(xmlHtmlNode(expected_string));
+    }
+
+    return isEqual;
+}
+
+/**
+ * Given an HTMLElement representing a form field, return it's name and value.
+ * @param { HTMLElement } field
+ * @returns { { string, string } | null }
+ */
+export function getNameAndValue(field) {
+    const name = field.getAttribute('name');
+    if (!name) {
+        return null; // See #1924
+    }
+    let value;
+    if (field.getAttribute('type') === 'checkbox') {
+        value = field.checked && 1 || 0;
+    } else if (field.tagName == "TEXTAREA") {
+        value = field.value.split('\n').filter(s => s.trim());
+    } else if (field.tagName == "SELECT") {
+        value = u.getSelectValues(field);
+    } else {
+        value = field.value;
+    }
+    return { name, value };
+}
+
 
 function getInputType(field) {
     const type = XFORM_TYPE_MAP[field.getAttribute('type')]
@@ -97,13 +184,13 @@ export function getOOBURLMarkup (url) {
         return url;
     }
     if (isVideoURL(uri)) {
-        return tpl_video(url);
+        return tplVideo(url);
     } else if (isAudioURL(uri)) {
-        return tpl_audio(url);
+        return tplAudio(url);
     } else if (isImageURL(uri)) {
-        return tpl_file(uri.toString(), getFileName(uri));
+        return tplFile(uri.toString(), getFileName(uri));
     } else {
-        return tpl_file(uri.toString(), getFileName(uri));
+        return tplFile(uri.toString(), getFileName(uri));
     }
 }
 
@@ -265,7 +352,7 @@ export function getHyperlinkTemplate (url) {
     const http_url = RegExp('^w{3}.', 'ig').test(url) ? `http://${url}` : url;
     const uri = getURI(url);
     if (uri !== null && isUrlValid(http_url) && (isProtocolApproved(uri._parts.protocol) || !uri._parts.protocol)) {
-        return tpl_hyperlink(uri, url);
+        return tplHyperlink(uri, url);
     }
     return url;
 }
@@ -450,7 +537,7 @@ u.xForm2TemplateResult = function (field, stanza, options={}) {
                 'required': !!field.querySelector('required')
             };
         });
-        return tpl_form_select({
+        return tplFormSelect({
             options,
             'id': u.getUniqueId(),
             'label': field.getAttribute('label'),
@@ -460,9 +547,9 @@ u.xForm2TemplateResult = function (field, stanza, options={}) {
         });
     } else if (field.getAttribute('type') === 'fixed') {
         const text = field.querySelector('value')?.textContent;
-        return tpl_form_help({ text });
+        return tplFormHelp({ text });
     } else if (field.getAttribute('type') === 'jid-multi') {
-        return tpl_form_textarea({
+        return tplFormTextarea({
             'name': field.getAttribute('var'),
             'label': field.getAttribute('label') || '',
             'value': field.querySelector('value')?.textContent,
@@ -470,19 +557,19 @@ u.xForm2TemplateResult = function (field, stanza, options={}) {
         });
     } else if (field.getAttribute('type') === 'boolean') {
         const value = field.querySelector('value')?.textContent;
-        return tpl_form_checkbox({
+        return tplFormCheckbox({
             'id': u.getUniqueId(),
             'name': field.getAttribute('var'),
             'label': field.getAttribute('label') || '',
             'checked': ((value === '1' || value === 'true') && 'checked="1"') || ''
         });
     } else if (field.getAttribute('var') === 'url') {
-        return tpl_form_url({
+        return tplFormUrl({
             'label': field.getAttribute('label') || '',
             'value': field.querySelector('value')?.textContent
         });
     } else if (field.getAttribute('var') === 'username') {
-        return tpl_form_username({
+        return tplFormUsername({
             'domain': ' @' + options.domain,
             'name': field.getAttribute('var'),
             'type': getInputType(field),
@@ -491,7 +578,7 @@ u.xForm2TemplateResult = function (field, stanza, options={}) {
             'required': !!field.querySelector('required')
         });
     } else if (field.getAttribute('var') === 'password') {
-        return tpl_form_input({
+        return tplFormInput({
             'name': field.getAttribute('var'),
             'type': 'password',
             'label': field.getAttribute('label') || '',
@@ -502,7 +589,7 @@ u.xForm2TemplateResult = function (field, stanza, options={}) {
         // Captcha
         const uri = field.querySelector('uri');
         const el = sizzle('data[cid="' + uri.textContent.replace(/^cid:/, '') + '"]', stanza)[0];
-        return tpl_form_captcha({
+        return tplFormCaptcha({
             'label': field.getAttribute('label'),
             'name': field.getAttribute('var'),
             'data': el?.textContent,
@@ -511,7 +598,7 @@ u.xForm2TemplateResult = function (field, stanza, options={}) {
         });
     } else {
         const name = field.getAttribute('var');
-        return tpl_form_input({
+        return tplFormInput({
             'id': u.getUniqueId(),
             'label': field.getAttribute('label') || '',
             'name': name,
@@ -525,6 +612,6 @@ u.xForm2TemplateResult = function (field, stanza, options={}) {
     }
 };
 
-Object.assign(u, { getOOBURLMarkup, ancestor, slideIn, slideOut });
+Object.assign(u, { getOOBURLMarkup, ancestor, slideIn, slideOut, isEqualNode });
 
 export default u;

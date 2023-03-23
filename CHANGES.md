@@ -1,7 +1,16 @@
 # Changelog
 
-## 10.1.1 (Unreleased)
+## 10.1.2 (2023-02-17)
 
+- #1490: Busy-loop when fetching registration form fails
+- #1556: Can't switch to registration form afrer logout
+- #3137: Various UI/UX bugfixes regarding the registration form
+- XEP-0437: Room Activity Indicators (RAI) optimizations
+
+## 10.1.1 (2023-02-15)
+
+- #1851: Sort open groupchats alphabetically
+- #2240: Ad-Hoc command result form not shown
 - #3128: Second bookmarked room shows info of the first one
 - Bugfix. Uyghur translations weren't loading
 
