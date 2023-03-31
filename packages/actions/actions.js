@@ -16,11 +16,7 @@
             html = converse.env.html;
 
             _converse.api.settings.update({
-                actions_reply: true,
-                actions_reactions: [
-                    {name: 'like', label: 'Like', emoji: ':smiley:', icon_class: 'fa fa-check'},
-                    {name: 'dislike', label: 'Dislike', emoji: ':disappointed:', icon_class: 'fa fa-times'}
-                ]
+                actions_reply: true
             });
 
             _converse.api.listen.on('parseMessage', async (stanza, attrs) => {
@@ -38,9 +34,16 @@
                 }
 
                 const reactions = _converse.api.settings.get("actions_reactions");
-
-                for (let reaction of reactions) {
-                    buttons.push({'i18n_text': __(reaction.label),   'handler': ev => handleReactionAction(el.model, reaction.emoji), 'button_class': 'chat-msg__action-' + reaction.name, 'icon_class': reaction.icon_class,  'name': 'action-' + reaction.name});
+                if(reactions) {
+                    for (let reaction of reactions) {
+                        buttons.push({
+                            'i18n_text': __(reaction.label),
+                            'handler': ev => handleReactionAction(el.model, reaction.emoji),
+                            'button_class': 'chat-msg__action-' + reaction.name,
+                            'icon_class': reaction.icon_class,
+                            'name': 'action-' + reaction.name
+                        });
+                    }
                 }
 
                 return buttons;
