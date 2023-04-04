@@ -5,7 +5,7 @@
         factory(converse);
     }
 }(this, function (converse) {
-    let __, html, _converse;
+    let __, html, _converse, modal, purgeModal;
 
     converse.plugins.add("actions", {
         'dependencies': [],
@@ -14,6 +14,7 @@
             _converse = this._converse;
             __ = _converse.__;
             html = converse.env.html;
+            modal = converse.env.BootstrapModal;
 
             _converse.api.settings.update({
                 actions_reply: true
@@ -46,7 +47,71 @@
                     }
                 }
 
+                buttons.push({
+                    'i18n_text': __('Purge'),
+                    'handler': ev => handlePurgeAction(el.model, ev),
+                    'button_class': 'chat-msg__action-purge',
+                    'icon_class': 'fa fa-trash',
+                    'name': 'action-purge'
+                });
+
                 return buttons;
+            });
+
+            purgeModal = modal.extend({
+                id: 'plugin-purge-modal',
+                initialize() {
+                    modal.prototype.initialize.apply(this, arguments);
+                },
+                toHTML() {
+                    const nick = this.model.get('nick');
+                    const i18n_all_users = __('All');
+                    const i18n_ban = __('Purge messages');
+
+                    return html`
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title" id="message-versions-modal-label">${__('Purge messages')}</h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="${__('Close')}"><span aria-hidden="true">×</span></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="converse-form" @submit=${ev => this.submitForm(ev)}>
+                                        <div class="form-group">
+                                            <input type="radio" id="purgeNick" value="${nick}" name="purge-user"
+                                                   checked/>
+                                            <label for="purgeNick">${nick}</label>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="radio" id="purgeAll" name="purge-user" value="${nick} all"/>
+                                            <label for="purgeAll">${i18n_all_users}</label>
+                                        </div>
+                                        <div class="form-group">
+                                            <button type="submit" class="btn btn-primary">${i18n_ban}</button>
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">${__('Close')}</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+                submitForm(ev) {
+                    ev.preventDefault();
+
+                    const form = ev.currentTarget;
+                    const nick = form.elements['purge-user'].value;
+
+                    const msg = $msg({
+                        to: this.model.collection.chatbox.get('jid'),
+                        from: _converse.connection.jid,
+                        type: 'groupchat'
+                    }).c('body').t(`/purge ${nick}`);
+
+                    _converse.api.send(msg);
+
+                    this.modal.hide();
+                }
             });
 
             _converse.api.listen.on('connected', function() {
@@ -76,6 +141,17 @@
 
         if (!selectedText || selectedText === '') selectedText = model.get('message');
         replyChat(model, nick, selectedText);
+    }
+
+    function handlePurgeAction(model, ev){
+        ev.preventDefault();
+
+        showPurgeMsgsModal(model, ev);
+    }
+
+    function showPurgeMsgsModal(model,ev){
+        let purgeMsgsModal = new purgeModal({ model: model});
+        purgeMsgsModal.show(ev);
     }
 
     function handleReactionAction(model, emoji) {
