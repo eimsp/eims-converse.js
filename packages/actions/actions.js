@@ -61,13 +61,11 @@
 
             purgeModal = modal.extend({
                 id: 'plugin-purge-modal',
-                initialize() {
-                    modal.prototype.initialize.apply(this, arguments);
-                },
+
                 toHTML() {
                     const nick = this.model.get('nick');
                     const i18n_all_users = __('All');
-                    const i18n_ban = __('Purge messages');
+                    const i18n_purge = __('Purge messages');
 
                     return html`
                         <div class="modal-dialog" role="document">
@@ -79,16 +77,16 @@
                                 <div class="modal-body">
                                     <form class="converse-form" @submit=${ev => this.submitForm(ev)}>
                                         <div class="form-group">
-                                            <input type="radio" id="purgeNick" value="${nick}" name="purge-user"
+                                            <input type="radio" id="purgeByNick" value="${nick}" name="purge-user"
                                                    checked/>
-                                            <label for="purgeNick">${nick}</label>
+                                            <label for="purgeByNick">${nick}</label>
                                         </div>
                                         <div class="form-group">
-                                            <input type="radio" id="purgeAll" name="purge-user" value="${nick} all"/>
+                                            <input type="radio" id="purgeAll" name="purge-user" value="all"/>
                                             <label for="purgeAll">${i18n_all_users}</label>
                                         </div>
                                         <div class="form-group">
-                                            <button type="submit" class="btn btn-primary">${i18n_ban}</button>
+                                            <button type="submit" class="btn btn-primary">${i18n_purge}</button>
                                             <button type="button" class="btn btn-secondary" data-dismiss="modal">${__('Close')}</button>
                                         </div>
                                     </form>
@@ -147,15 +145,11 @@
     function handlePurgeAction(model, ev){
         ev.preventDefault();
 
-        showPurgeMsgsModal(model, ev);
-    }
-
-    function showPurgeMsgsModal(model,ev){
         let purgeMsgsModal = new purgeModal({ model: model});
         purgeMsgsModal.show(ev);
     }
 
-    function handleReactionAction(model, emoji) {
+  function handleReactionAction(model, emoji) {
         console.debug('handleReactionAction', model, emoji);
         const msgId = model.get('msgid');
         const type = model.get("type");
