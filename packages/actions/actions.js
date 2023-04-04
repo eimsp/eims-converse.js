@@ -46,14 +46,15 @@
                         });
                     }
                 }
-
-                buttons.push({
-                    'i18n_text': __('Purge'),
-                    'handler': ev => handlePurgeAction(el.model, ev),
-                    'button_class': 'chat-msg__action-purge',
-                    'icon_class': 'fa fa-trash',
-                    'name': 'action-purge'
-                });
+                if (getChatBoxFromMessageModel(el.model).model.getOwnRole() === 'moderator'){
+                    buttons.push({
+                        'i18n_text': __('Purge'),
+                        'handler': ev => handlePurgeAction(el.model, ev),
+                        'button_class': 'chat-msg__action-purge',
+                        'icon_class': 'fa fa-trash',
+                        'name': 'action-purge'
+                    });
+                }
 
                 return buttons;
             });
