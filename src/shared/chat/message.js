@@ -156,9 +156,13 @@ export default class Message extends CustomElement {
 
     isCommand () {
         const text = this.model.get('body');
+        let commands = api.settings.get('muc_skip_usr_commands_msg');
 
-        //don't display messages start with '/' (commands)
-        return text && text.startsWith('/');
+        if ((commands && commands.length > 0) && text) {
+            commands = commands.join('|');
+            return text.match(new RegExp('^\/(' + commands + ')(\\s+|$)'));
+        }
+
     }
 
     hasMentions () {

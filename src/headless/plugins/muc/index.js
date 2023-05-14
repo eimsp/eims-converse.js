@@ -106,6 +106,7 @@ converse.plugins.add('converse-muc', {
             'modtools_disable_assign': false,
             'muc_clear_messages_on_leave': true,
             'muc_domain': undefined,
+            'muc_skip_usr_commands_msg': [],
             'muc_fetch_members': true,
             'muc_history_max_stanzas': undefined,
             'muc_instant_rooms': true,
