@@ -13,6 +13,34 @@ export function getPlaceholderTemplate (message, tpl) {
     }
 }
 
+export async function fetchMessagesOnClick(opt){
+    const view = opt.view;
+    const msgId = opt.msgId;
+
+    //find message in already fetched
+    const messages = view.model.messages;
+    const msg = messages.models.find(m => m.get('msgid') === msgId);
+
+    if (msg) {
+        _converse.router.history.navigate(`#${msgId}`);
+
+    }else {
+        await view.model.clearMessages();
+
+        const time = opt.time;
+        const stanzaId = opt.stanzaId;
+
+        view.model.ui.set('chat-content-spinner-top', true);
+
+        await fetchArchivedMessages(view.model, {'before': stanzaId, max: 5});
+        await fetchArchivedMessages(view.model, {'start': time, max: 10});
+
+        setTimeout(() => _converse.router.history.navigate(`#${opt.msgId}`), 500);
+
+        setTimeout(() => view.model.ui.set('chat-content-spinner-top', false), 250);
+    }
+}
+
 export async function fetchMessagesOnScrollUp (view) {
     if (view.model.ui.get('chat-content-spinner-top')) {
         return;

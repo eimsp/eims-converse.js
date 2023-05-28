@@ -5,7 +5,7 @@
  */
 import './placeholder.js';
 import { api, converse } from '@converse/headless/core';
-import { fetchMessagesOnScrollUp, getPlaceholderTemplate } from './utils.js';
+import { fetchMessagesOnScrollUp, getPlaceholderTemplate, fetchMessagesOnClick } from './utils.js';
 
 
 converse.plugins.add('converse-mam-views', {
@@ -13,6 +13,7 @@ converse.plugins.add('converse-mam-views', {
 
     initialize () {
         api.listen.on('chatBoxScrolledUp', fetchMessagesOnScrollUp);
+        api.listen.on('navigationToMessage', fetchMessagesOnClick);
         api.listen.on('getMessageTemplate', getPlaceholderTemplate);
     }
 });
