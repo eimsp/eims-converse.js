@@ -81,6 +81,7 @@ export default class ChatContent extends CustomElement {
         // shown in reverse order.
         return html`
             <div class="chat-content__notifications">${this.model.getNotificationsText()}</div>
+            ${ this.model.ui?.get('chat-content-spinner-bottom') ? tplSpinner() : '' }
             <converse-message-history
                 .model=${this.model}
                 .messages=${[...this.model.messages.models]}>

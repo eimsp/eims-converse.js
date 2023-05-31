@@ -41,6 +41,34 @@ export async function fetchMessagesOnClick(opt){
     }
 }
 
+export async function fetchMessagesOnScrollDown (model) {
+    if (model.chatbox.ui.get('chat-content-spinner-bottom')) {
+        return;
+    }
+    if (model.chatbox.messages.length) {
+        const is_groupchat = model.chatbox.get('type') === _converse.CHATROOMS_TYPE;
+        const recent_message = model.chatbox.getMostRecentMessage();
+
+        if (recent_message) {
+            const by_jid = is_groupchat ? model.chatbox.get('jid') : _converse.bare_jid;
+            const stanza_id = recent_message && recent_message.get(`stanza_id ${by_jid}`);
+            model.chatbox.ui.set('chat-content-spinner-bottom', true);
+            try {
+                if (stanza_id) {
+                    await fetchArchivedMessages(model.chatbox, { 'after': stanza_id });
+                } else {
+                    await fetchArchivedMessages(model.chatbox, { 'start': recent_message.get('time') });
+                }
+            } catch (e) {
+                log.error(e);
+                model.chatbox.ui.set('chat-content-spinner-bottom', false);
+                return;
+            }
+            setTimeout(() => model.chatbox.ui.set('chat-content-spinner-bottom', false), 250);
+        }
+    }
+}
+
 export async function fetchMessagesOnScrollUp (view) {
     if (view.model.ui.get('chat-content-spinner-top')) {
         return;
