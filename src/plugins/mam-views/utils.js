@@ -32,10 +32,10 @@ export async function fetchMessagesOnClick(opt){
 
         view.model.ui.set('chat-content-spinner-top', true);
 
-        await fetchArchivedMessages(view.model, {'before': stanzaId, max: 5});
+        await fetchArchivedMessages(view.model, {'before': stanzaId, max: 10});
         await fetchArchivedMessages(view.model, {'start': time, max: 10});
 
-        setTimeout(() => _converse.router.history.navigate(`#${opt.msgId}`), 500);
+        setTimeout(() => _converse.router.history.navigate(`#${opt.msgId}`), 250);
 
         setTimeout(() => view.model.ui.set('chat-content-spinner-top', false), 250);
     }

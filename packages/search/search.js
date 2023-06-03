@@ -63,7 +63,7 @@
                             
                             //var tagged = tagRegExp ? body.replace(tagRegExp, html`<span style=background-color:#FF9;color:#555;>$1</span>`) : body;
                             return html`
-                                <tr style="cursor: pointer;" data-id="${msgId}" data-time="${time}" data-stanzaId = "${stanzaId}">
+                                <tr style="cursor: pointer;" data-id="${msgId}" data-time="${time}" data-stanzaid = "${stanzaId}">
                                     <td>${pretty_time}</td>
                                     <td>${pretty_from}</td>
                                     <td>${body}</td>
@@ -158,7 +158,7 @@
                     const msg = ev.delegateTarget;
                     const msgId = msg.dataset.id;
                     const time = msg.dataset.time;
-                    const stanzaId = msg.dataset.stanzaId;
+                    const stanzaId = msg.dataset.stanzaid;
 
                     if(msgId) {
                         const view = this.model.get('view');
