@@ -46,9 +46,9 @@
                         });
                     }
                 }
-                const chatroom = getChatBoxFromMessageModel(el.model).model;
+                const chatroom = getChatBoxFromMessageModel(el.model)?.model;
 
-                if (chatroom.get('type') === 'chatroom' && chatroom.getOwnRole() && chatroom.getOwnRole() === 'moderator'){
+                if (chatroom && chatroom.get('type') === 'chatroom' && chatroom.getOwnRole() && chatroom.getOwnRole() === 'moderator'){
                     buttons.push({
                         'i18n_text': __('Purge'),
                         'handler': ev => handlePurgeAction(el.model, ev),

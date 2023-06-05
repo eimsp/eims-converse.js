@@ -303,7 +303,7 @@ class MessageActions extends CustomElement {
             });
         }
 
-        if (this.model.get('sender') !== 'me') {
+        if (this.model.get('type') === 'groupchat' && this.model.get('sender') !== 'me') {
             buttons.push({
                 'i18n_text': 'Ban',
                 'handler': ev => this.onMessageBanButtonClicked(ev),
