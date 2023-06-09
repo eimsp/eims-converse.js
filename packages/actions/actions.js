@@ -46,7 +46,9 @@
                         });
                     }
                 }
-                if (getChatBoxFromMessageModel(el.model).model.getOwnRole() === 'moderator'){
+                const chatroom = getChatBoxFromMessageModel(el.model)?.model;
+
+                if (chatroom && chatroom.get('type') === 'chatroom' && chatroom.getOwnRole() && chatroom.getOwnRole() === 'moderator'){
                     buttons.push({
                         'i18n_text': __('Purge'),
                         'handler': ev => handlePurgeAction(el.model, ev),
@@ -55,7 +57,6 @@
                         'name': 'action-purge'
                     });
                 }
-
                 return buttons;
             });
 
