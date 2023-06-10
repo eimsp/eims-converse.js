@@ -23,7 +23,6 @@ export async function fetchMessagesOnClick(opt){
 
     if (msg) {
         _converse.router.history.navigate(`#${msgId}`);
-
     }else {
         await view.model.clearMessages();
 
@@ -32,39 +31,78 @@ export async function fetchMessagesOnClick(opt){
 
         view.model.ui.set('chat-content-spinner-top', true);
 
-        await fetchArchivedMessages(view.model, {'before': stanzaId, max: 10});
-        await fetchArchivedMessages(view.model, {'start': time, max: 10});
-
-        setTimeout(() => _converse.router.history.navigate(`#${opt.msgId}`), 250);
-
-        setTimeout(() => view.model.ui.set('chat-content-spinner-top', false), 250);
+        try {
+            await fetchArchivedMessages(view.model, {'before': stanzaId, max: 10});
+            await fetchArchivedMessages(view.model, {'start': time, max: 30});
+        }catch(e){
+            log.error(e);
+            view.model.ui.set('chat-content-spinner-top', false);
+            return;
+        }
+        if (api.settings.get('allow_url_history_change')) {
+            setTimeout(() => _converse.router.history.navigate(`#${opt.msgId}`), 250);
+        }
+        //TODO: remove spinner after checking messages in model
+        setTimeout(() => view.model.ui.set('chat-content-spinner-top', false), 500);
     }
 }
 
 export async function fetchMessagesOnScrollDown (model) {
-    if (model.chatbox.ui.get('chat-content-spinner-bottom')) {
+    if (model.chatbox.ui.get('chat-content-spinner-bottom') || model.chatbox.ui.get('chat-content-spinner-top')) {
         return;
     }
-    if (model.chatbox.messages.length) {
-        const is_groupchat = model.chatbox.get('type') === _converse.CHATROOMS_TYPE;
-        const recent_message = model.chatbox.getMostRecentMessage();
+    //in case of unread messages, fetch the latest messages
+    if(model.chatbox.ui.get('scroll_unread')){
+        model.chatbox.ui.set({scroll_unread: false});
 
-        if (recent_message) {
-            const by_jid = is_groupchat ? model.chatbox.get('jid') : _converse.bare_jid;
-            const stanza_id = recent_message && recent_message.get(`stanza_id ${by_jid}`);
-            model.chatbox.ui.set('chat-content-spinner-bottom', true);
-            try {
-                if (stanza_id) {
-                    await fetchArchivedMessages(model.chatbox, { 'after': stanza_id });
-                } else {
-                    await fetchArchivedMessages(model.chatbox, { 'start': recent_message.get('time') });
+        await model.chatbox.clearMessages();
+
+        model.chatbox.ui.set('chat-content-spinner-top', true);
+
+        await fetchArchivedMessages(model.chatbox, { 'before': '' });
+
+        setTimeout(() => model.chatbox.ui.set('chat-content-spinner-top', false), 250);
+    }else {
+        if (model.chatbox.messages.length) {
+            const is_groupchat = model.chatbox.get('type') === _converse.CHATROOMS_TYPE;
+            const recent_message = model.chatbox.getMostRecentMessage();
+
+            if (recent_message) {
+                const by_jid = is_groupchat ? model.chatbox.get('jid') : _converse.bare_jid;
+                const stanza_id = recent_message && recent_message.get(`stanza_id ${by_jid}`);
+                model.chatbox.ui.set('chat-content-spinner-bottom', true);
+                try {
+                    if (stanza_id) {
+                        await fetchArchivedMessages(model.chatbox, {'after': stanza_id});
+                    } else {
+                        await fetchArchivedMessages(model.chatbox, {'start': recent_message.get('time')});
+                    }
+                } catch (e) {
+                    log.error(e);
+                    model.chatbox.ui.set('chat-content-spinner-bottom', false);
+                    return;
                 }
-            } catch (e) {
-                log.error(e);
-                model.chatbox.ui.set('chat-content-spinner-bottom', false);
-                return;
+
+                if (api.settings.get('allow_url_history_change')) {
+                    let iter = 0;
+                    const interval = setInterval(() => {
+                        const msgId = recent_message.get('msgid')
+                        const messages = model.chatbox.messages;
+                        const msg = messages.models.find(m => m.get('msgid') === msgId);
+                        if (msg && document.getElementById(msgId)) {
+                            _converse.router.history.navigate(`#${recent_message.get('msgid')}`)
+                            clearInterval(interval)
+                        } else {
+                            if(iter >= 4){
+                                clearInterval(interval)
+                            }
+                            iter++;
+                        }
+                    }, 250);
+                }
+
+                setTimeout(() => model.chatbox.ui.set('chat-content-spinner-bottom', false), 250);
             }
-            setTimeout(() => model.chatbox.ui.set('chat-content-spinner-bottom', false), 250);
         }
     }
 }

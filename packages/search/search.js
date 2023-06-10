@@ -164,12 +164,8 @@
                         const view = this.model.get('view');
                         const jid = view.model.get('jid');
 
-                        //view.model.clearMessages();
-                        //view.model.ui.set('chat-content-spinner-top', true);
                         this.modal.hide();
                         _converse.api.trigger('navigationToMessage', {view, msgId, jid, time, stanzaId});
-                        //_converse.api.trigger('focusOnMessage',{msgId, jid});
-                       // this.modal.hide();
                     }
                 },
 

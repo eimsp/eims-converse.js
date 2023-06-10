@@ -105,7 +105,7 @@ function _markScrolled (ev) {
          */
         api.trigger('chatBoxScrolledUp', el);
     }
-    if (el.model.get('scolled') !== scrolled) {
+    if (el.model.get('scrolled') !== scrolled) {
         el.model.ui.set({ scrolled });
     }
 }
