@@ -1,8 +1,10 @@
 import MAMPlaceholderMessage from '@converse/headless/plugins/mam/placeholder.js';
 import log from '@converse/headless/log.js';
-import { _converse, api } from '@converse/headless/core';
+import {_converse, api, converse} from '@converse/headless/core';
 import { fetchArchivedMessages } from '@converse/headless/plugins/mam/utils';
 import { html } from 'lit/html.js';
+
+const { u } = converse.env;
 
 
 export function getPlaceholderTemplate (message, tpl) {
@@ -22,7 +24,7 @@ export async function fetchMessagesOnClick(opt){
     const msg = messages.models.find(m => m.get('msgid') === msgId);
 
     if (msg) {
-        _converse.router.history.navigate(`#${msgId}`);
+        setFocusToMessage(msgId);
     }else {
         await view.model.clearMessages();
 
@@ -40,10 +42,22 @@ export async function fetchMessagesOnClick(opt){
             return;
         }
         if (api.settings.get('allow_url_history_change')) {
-            setTimeout(() => _converse.router.history.navigate(`#${opt.msgId}`), 250);
+            setTimeout(() => { setFocusToMessage(msgId) }, 250);
         }
         //TODO: remove spinner after checking messages in model
         setTimeout(() => view.model.ui.set('chat-content-spinner-top', false), 500);
+    }
+}
+
+function setFocusToMessage (msgId) {
+    const focusMsg = document.getElementById(`${msgId}`)?.parentElement;
+
+    if (focusMsg) {
+        _converse.router.history.navigate(`#${msgId}`);
+        u.addClass('focus-msg', focusMsg);
+        setTimeout(() => {
+            u.removeClass('focus-msg', focusMsg);
+        }, 2000);
     }
 }
 
