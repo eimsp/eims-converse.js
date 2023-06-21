@@ -771,16 +771,21 @@ const ChatBox = ModelWithContact.extend({
      * @param { _converse.Message } message - The message object
      */
     async createMessageStanza (message) {
+        const jid = this.get('jid');
+        const msg_type = message.get('type');
+
+        const to = (msg_type === 'chat') ? jid + '/' + message.get('recipient'): jid;
         const stanza = $msg({
                 'from': _converse.connection.jid,
-                'to': this.get('jid'),
-                'type': this.get('message_type'),
+                'to': to,
+                'type': msg_type,
                 'id': message.get('edited') && u.getUniqueId() || message.get('msgid'),
             }).c('body').t(message.get('body')).up()
               .c(_converse.ACTIVE, {'xmlns': Strophe.NS.CHATSTATES}).root();
 
-        if (message.get('type') === 'chat') {
+        if (msg_type === 'chat') {
             stanza.c('request', {'xmlns': Strophe.NS.RECEIPTS}).root();
+            stanza.c('x', {'xmlns': 'http://jabber.org/protocol/muc#user'}).root();
         }
 
         if (!message.get('is_encrypted')) {
@@ -910,6 +915,43 @@ const ChatBox = ModelWithContact.extend({
         attrs.time = attrs.time || (new Date()).toISOString();
         await this.messages.fetched;
         return this.messages.create(attrs, options);
+    },
+
+    async sendPrivateMessage (attrs, options) {
+        attrs = await this.getOutgoingPrivateMessageAttributes(attrs);
+        let message = this.messages.findWhere('correcting');
+        if (message) {
+            const older_versions = message.get('older_versions') || {};
+            const edited_time = message.get('edited') || message.get('time');
+            older_versions[edited_time] = message.getMessageText();
+
+            message.save({
+                ...pick(attrs, ['body', 'is_only_emojis', 'media_urls', 'references', 'is_encrypted']),
+                ...{
+                    'correcting': false,
+                    'edited': (new Date()).toISOString(),
+                    'message': attrs.body,
+                    'ogp_metadata': [],
+                    'received': undefined,
+                    older_versions,
+                    plaintext: attrs.is_encrypted ? attrs.message : undefined,
+                }
+            });
+        } else {
+            this.setEditable(attrs, (new Date()).toISOString());
+            message = await this.createMessage(attrs, options);
+        }
+
+        try {
+            const stanza = await this.createMessageStanza(message);
+            api.send(stanza);
+        } catch (e) {
+            message.destroy();
+            log.error(e);
+            return;
+        }
+        api.trigger('sendMessage', {'chatbox': this, message});
+        return message;
     },
 
     /**
