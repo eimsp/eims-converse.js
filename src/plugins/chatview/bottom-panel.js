@@ -50,6 +50,7 @@ export default class ChatBottomPanel extends ElementView {
 
     viewUnreadMessages (ev) {
         ev?.preventDefault?.();
+        this.model.ui.set({scroll_unread: true});
         this.model.ui.set({ 'scrolled': false });
     }
 

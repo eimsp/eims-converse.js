@@ -81,6 +81,7 @@ export default class ChatContent extends CustomElement {
         // shown in reverse order.
         return html`
             <div class="chat-content__notifications">${this.model.getNotificationsText()}</div>
+            ${ this.model.ui?.get('chat-content-spinner-bottom') ? tplSpinner() : '' }
             <converse-message-history
                 .model=${this.model}
                 .messages=${[...this.model.messages.models]}>
@@ -129,12 +130,14 @@ export default class ChatContent extends CustomElement {
         if (this.model.ui.get('scrolled')) {
             return;
         }
-        if (this.scrollTo) {
+
+        /*if (this.scrollTo) {
             const behavior = this.scrollTop ? 'smooth' : 'auto';
             this.scrollTo({ 'top': 0, behavior });
         } else {
             this.scrollTop = 0;
-        }
+        }*/
+
         /**
          * Triggered once the converse-chat-content element has been scrolled down to the bottom.
          * @event _converse#chatBoxScrolledDown

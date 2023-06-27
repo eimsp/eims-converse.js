@@ -59,9 +59,11 @@
                             const pretty_time = dayjs(time).format('MMM DD HH:mm:ss');
                             const pretty_from = isGroupChat ? from.split('/')[1] : from.split('@')[0];
                             const msgId = msg.querySelector('message').getAttribute('id');
+                            const stanzaId = msg.querySelector('stanza-id').getAttribute('id');
+                            
                             //var tagged = tagRegExp ? body.replace(tagRegExp, html`<span style=background-color:#FF9;color:#555;>$1</span>`) : body;
                             return html`
-                                <tr style="cursor: pointer;" data-id="${msgId}">
+                                <tr style="cursor: pointer;" data-id="${msgId}" data-time="${time}" data-stanzaid = "${stanzaId}">
                                     <td>${pretty_time}</td>
                                     <td>${pretty_from}</td>
                                     <td>${body}</td>
@@ -155,13 +157,15 @@
                 clickResultMsg(ev) {
                     const msg = ev.delegateTarget;
                     const msgId = msg.dataset.id;
+                    const time = msg.dataset.time;
+                    const stanzaId = msg.dataset.stanzaid;
 
                     if(msgId) {
                         const view = this.model.get('view');
                         const jid = view.model.get('jid');
 
-                        _converse.api.trigger('focusOnMessage',{msgId, jid});
                         this.modal.hide();
+                        _converse.api.trigger('navigationToMessage', {view, msgId, jid, time, stanzaId});
                     }
                 },
 

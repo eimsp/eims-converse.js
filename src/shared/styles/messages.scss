@@ -120,6 +120,11 @@
                 }
             }
 
+            &.focus-msg {
+                animation: colorchange-chatmessage 1s;
+                -webkit-animation: colorchange-chatmessage 1s;
+            }
+
             .spoiler {
                 margin-top: 0.5em;
             }

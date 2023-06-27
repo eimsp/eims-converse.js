@@ -1032,6 +1032,35 @@ const ChatRoomMixin = {
         return attrs;
     },
 
+
+    async getOutgoingPrivateMessageAttributes (attrs) {
+        await api.emojis.initialize();
+        const is_spoiler = this.get('composing_spoiler');
+        let text = '', references;
+        if (attrs?.body) {
+            [text, references] = this.parseTextForReferences(attrs.body);
+        }
+        const origin_id = getUniqueId();
+        const body = text ? u.shortnamesToUnicode(text) : undefined;
+        const recipient = attrs?.recipient;
+        attrs = Object.assign({}, attrs, {
+            body,
+            recipient,
+            is_spoiler,
+            references,
+            'id': origin_id,
+            'msgid': origin_id,
+            'from': `${this.get('jid')}/${this.get('nick')}`,
+            'fullname': this.get('nick'),
+            'is_only_emojis': text ? u.isOnlyEmojis(text) : false,
+            'message': body,
+            'nick': this.get('nick'),
+            'sender': 'me',
+            'type': 'chat'
+        }, getMediaURLsMetadata(text));
+        return attrs;
+    },
+
     /**
      * Utility method to construct the JID for the current user as occupant of the groupchat.
      * @private
