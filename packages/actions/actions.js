@@ -194,7 +194,13 @@
     }
 
     function normalizeTextMention(nick, message) {
-        return ">" + nick + ' : ' + message.replace(/^[>]/,"\n>").replace(/\n/g, "\n>") + "\n";
+        const regexp = />[^>]+?\n(.*)/;
+        const quote = message.match(regexp);
+
+        if(quote && quote.length > 1){
+            message = quote[1];
+        }
+        return ">" + nick + ' : ' + message.replace(/^>/,"\n>") + "\n";
     }
 
     function getTargetJidFromMessageModel(model) {
