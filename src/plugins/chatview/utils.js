@@ -23,6 +23,18 @@ export function parseMessageForPrivate(text){
     return false;
 }
 
+export function parseMessageForReply(chat, text) {
+    const str = text?.trim();
+    const regex = />[^>]+?\n(.*)/;
+    const match = str.match(regex);
+    const reply_info = chat?.get('reply');
+
+    if (match && match.length > 1 && reply_info.msgId) {
+        return {'message': match[1], 'msgId': reply_info.msgId, 'from_jid': reply_info.from_jid, 'end': match[0].length - match[1].length};
+    }
+    return false;
+}
+
 export async function parseMessageForCommands (chat, text) {
     const match = text.replace(/^\s*/, '').match(/^\/(.*)\s*$/);
     if (match) {

@@ -183,7 +183,12 @@
         if (box)
         {
             const textArea = box.querySelector('.chat-textarea');
-            if (textArea) textArea.value = normalizeTextMention(nick, text);
+            const msgId = model.get('msgid');
+            if (textArea) {
+                textArea.value = normalizeTextMention(nick, text);
+                const from_jid = model.get('from_real_jid') || model.get('from');
+                box.model.set({reply: {from_jid, msgId}});
+            }
         }
     }
 
@@ -194,8 +199,8 @@
     }
 
     function normalizeTextMention(nick, message) {
-        const regexp = />[^>]+?\n(.*)/;
-        const quote = message.match(regexp);
+        const regex = />[^>]+?\n(.*)/;
+        const quote = message.match(regex);
 
         if(quote && quote.length > 1){
             message = quote[1];

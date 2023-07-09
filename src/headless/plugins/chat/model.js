@@ -788,6 +788,13 @@ const ChatBox = ModelWithContact.extend({
             stanza.c('x', {'xmlns': 'http://jabber.org/protocol/muc#user'}).root();
         }
 
+        if(message.get('reply')?.msgId){
+            const reply = message.get('reply');
+            stanza.c('reply', {'xmlns': 'urn:xmpp:reply:0', 'id': reply.msgId, 'to': reply.from_jid}).root();
+            stanza.c('fallback', {'xmlns': 'urn:xmpp:feature-fallback:0', 'for': 'urn:xmpp:reply:0'})
+                .c('body', {'start': 0, 'end': reply.end}).root();
+        }
+
         if (!message.get('is_encrypted')) {
             if (message.get('is_spoiler')) {
                 if (message.get('spoiler_hint')) {
@@ -967,7 +974,7 @@ const ChatBox = ModelWithContact.extend({
      */
     async sendMessage (attrs, options) {
         attrs = await this.getOutgoingMessageAttributes(attrs);
-        let message = this.messages.findWhere('correcting')
+        let message = this.messages.findWhere('correcting');
         if (message) {
             const older_versions = message.get('older_versions') || {};
             const edited_time = message.get('edited') || message.get('time');
