@@ -137,7 +137,7 @@
         console.debug('handleReplyAction', model)
 
         let selectedText = window.getSelection().toString();
-        const nick = model.get('nick') || model.get('nickname');
+        const nick = model.getDisplayName();
 
         if (!selectedText || selectedText === '') selectedText = model.get('message');
         replyChat(model, nick, selectedText);
