@@ -163,6 +163,19 @@ export async function parseMUCMessage (stanza, chatbox) {
     const delay = sizzle(`delay[xmlns="${Strophe.NS.DELAY}"]`, original_stanza).pop();
     const from = stanza.getAttribute('from');
     const marker = getChatMarker(stanza);
+    let reply;
+    if(stanza.querySelector('reply')){
+        const reply_info = stanza.querySelector('reply');
+        const reply_id = reply_info.getAttribute('id').split('/');
+        const reply_msg_id = reply_id[1];
+        const reply_stanza_id = reply_id[0];
+
+        reply = {
+            msgId: reply_msg_id,
+            stanzaId: reply_stanza_id,
+            from_jid: reply_info.getAttribute('to')
+        };
+    }
 
     /**
      * @typedef { Object } MUCMessageAttributes
@@ -223,6 +236,7 @@ export async function parseMUCMessage (stanza, chatbox) {
     let attrs = Object.assign(
         {
             from,
+            reply,
             'activities': getMEPActivities(stanza),
             'body': stanza.querySelector(':scope > body')?.textContent?.trim(),
             'chat_state': getChatState(stanza),

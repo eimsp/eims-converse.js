@@ -1007,7 +1007,7 @@ const ChatRoomMixin = {
         }
         const origin_id = getUniqueId();
         const body = text ? u.shortnamesToUnicode(text) : undefined;
-        const reply = attrs.reply ? {'msgId': attrs.reply.msgId, 'from_jid': attrs.reply.from_jid, 'end': attrs.reply.end} : undefined;
+        const reply = attrs.reply ? {'msgId': attrs.reply.msgId, 'from_jid': attrs.reply.from_jid, 'end': attrs.reply.end, 'stanzaId': attrs.reply.stanzaId} : undefined;
         attrs = Object.assign({}, attrs, {
             body,
             is_spoiler,

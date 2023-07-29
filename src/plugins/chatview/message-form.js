@@ -250,7 +250,7 @@ export default class MessageForm extends ElementView {
         let message = null;
         if(is_private){
             message = await this.model.sendPrivateMessage({'body': is_private.text, 'recipient': is_private.recipient, spoiler_hint});
-        }else if(!is_reply.message){
+        }else if(is_reply?.message == ''){
             message = null;
         }else if(!is_command){
             message = await this.model.sendMessage({'body': message_text, spoiler_hint, 'reply': is_reply});

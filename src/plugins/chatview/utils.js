@@ -25,14 +25,20 @@ export function parseMessageForPrivate(text){
 
 export function parseMessageForReply(chat, text) {
     const str = text?.trim();
-    const regex = />[^>]+?\n(.*)/;
+    const regex = />[^>]+?(\n(.*)|$)/;
     const match = str.match(regex);
     const reply_info = chat?.get('reply');
 
     if (match && match.length > 1 && reply_info.msgId) {
-        return {'message': match[1], 'msgId': reply_info.msgId, 'from_jid': reply_info.from_jid, 'end': match[0].length - match[1].length};
+        const message = !match[1] ? '': match[2];
+        return {
+            'message': message,
+            'msgId': reply_info.msgId,
+            'stanzaId': reply_info.stanzaId,
+            'from_jid': reply_info.from_jid,
+            'end': match[0].length - message.length
+        };
     }
-    return false;
 }
 
 export async function parseMessageForCommands (chat, text) {

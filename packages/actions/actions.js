@@ -183,11 +183,13 @@
         if (box)
         {
             const textArea = box.querySelector('.chat-textarea');
+            const key = `stanza_id ${model.chatbox.get('jid')}`;
+            const stanzaId = model.get(key);
             const msgId = model.get('msgid');
             if (textArea) {
                 textArea.value = normalizeTextMention(nick, text);
                 const from_jid = model.get('from_real_jid') || model.get('from');
-                box.model.set({reply: {from_jid, msgId}});
+                box.model.set({reply: {from_jid, msgId, stanzaId}});
             }
         }
     }

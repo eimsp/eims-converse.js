@@ -790,7 +790,7 @@ const ChatBox = ModelWithContact.extend({
 
         if(message.get('reply')?.msgId){
             const reply = message.get('reply');
-            stanza.c('reply', {'xmlns': 'urn:xmpp:reply:0', 'id': reply.msgId, 'to': reply.from_jid}).root();
+            stanza.c('reply', {'xmlns': 'urn:xmpp:reply:0', 'id': reply.stanzaId + '/' + reply.msgId, 'to': reply.from_jid}).root();
             stanza.c('fallback', {'xmlns': 'urn:xmpp:feature-fallback:0', 'for': 'urn:xmpp:reply:0'})
                 .c('body', {'start': 0, 'end': reply.end}).root();
         }
