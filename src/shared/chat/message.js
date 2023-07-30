@@ -252,9 +252,9 @@ export default class Message extends CustomElement {
     }
 
     async onTextClick (ev) {
-        ev.preventDefault();
         //click on blockquote
         if(ev.target.tagName === 'BLOCKQUOTE'){
+            ev.preventDefault();
             const reply = this.model?.get('reply');
             if(reply && reply.msgId && reply.stanzaId){
                 const view = _converse.chatboxviews.get(this.getAttribute('jid'));
