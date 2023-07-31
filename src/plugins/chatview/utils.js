@@ -15,12 +15,12 @@ export async function clearMessages (chat) {
 }
 
 export function parseMessageForPrivate(text){
-    const str = text?.trim().split(' ');
-    let word = str[0];
-    if(word && word.startsWith('!@')){
-        return {'recipient': word.substring(2), 'text': str.slice(1).join(' ')};
+    const regex = /!@(.+?)\s(.*)/s;
+    const match = text.trim().match(regex);
+
+    if(match && match.length > 1){
+        return {'recipient': match[1], 'text': match[2]};
     }
-    return false;
 }
 
 export function parseMessageForReply(chat, text) {

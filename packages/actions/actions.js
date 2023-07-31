@@ -183,11 +183,11 @@
         if (box)
         {
             const textArea = box.querySelector('.chat-textarea');
-            const key = `stanza_id ${model.chatbox.get('jid')}`;
+            const key = `stanza_id ${box.model.get('jid')}`;
             const stanzaId = model.get(key);
             const msgId = model.get('msgid');
             if (textArea) {
-                textArea.value = normalizeTextMention(nick, text);
+                textArea.value = normalizeReplyTextMention(model, nick, text);
                 const from_jid = model.get('from_real_jid') || model.get('from');
                 box.model.set({reply: {from_jid, msgId, stanzaId}});
             }
@@ -207,17 +207,29 @@
         if(quote && quote.length > 1){
             message = quote[1];
         }
+
         return ">" + nick + ' : ' + message.replace(/^>/,"\n>") + "\n";
+    }
+
+    function normalizeReplyTextMention(model, nick, message) {
+        const regex = />[^>]+?\n(.*)/;
+        const quote = message.match(regex);
+
+        if(quote && quote.length > 1){
+            message = quote[1];
+        }
+        const text = model.get('type') === 'chat' ? '!@' + nick + '\n' : '';
+        return text + '>' + nick + ' : ' + message + '\n';
     }
 
     function getTargetJidFromMessageModel(model) {
         const type = model.get("type");
         let target = model.get('from_muc');
         if (type === "chat")  {
-            target = model.get('jid');
-            if (model.get('sender') === 'them') {
-                target = model.get('from');
-            }
+            target = model.get('jid') || model.chatbox.get('jid');
+            //if (model.get('sender') === 'them') {
+              //  target = model.get('from');
+            //}
         }
         return target;
     }
