@@ -256,7 +256,7 @@ export default class Message extends CustomElement {
         if(ev.target.tagName === 'BLOCKQUOTE'){
             ev.preventDefault();
             const reply = this.model?.get('reply');
-            if(reply && reply.msgId && reply.stanzaId){
+            if(reply && reply.msgId){
                 const view = _converse.chatboxviews.get(this.getAttribute('jid'));
                 const msgId = reply.msgId;
                 const stanzaId = reply.stanzaId;

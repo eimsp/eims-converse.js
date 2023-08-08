@@ -183,8 +183,8 @@
         if (box)
         {
             const textArea = box.querySelector('.chat-textarea');
-            const key = `stanza_id ${box.model.get('jid')}`;
-            const stanzaId = model.get(key);
+            const key = Object.keys(model.attributes).filter(k => k.startsWith('stanza_id '));
+            const stanzaId = model.get(key[0]);
             const msgId = model.get('msgid');
             if (textArea) {
                 textArea.value = normalizeReplyTextMention(model, nick, text);

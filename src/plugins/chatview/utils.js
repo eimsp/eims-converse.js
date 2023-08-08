@@ -23,8 +23,8 @@ export function parseMessageForPrivate(text){
     }
 }
 
-export function parseMessageForReply(chat, text) {
-    const str = text?.trim();
+export function parseMessageForReply(chat, text, is_private) {
+    const str = is_private ? is_private.text : text?.trim();
     const regex = />[^>]+?(\n(.*)|$)/;
     const match = str.match(regex);
     const reply_info = chat?.get('reply');
