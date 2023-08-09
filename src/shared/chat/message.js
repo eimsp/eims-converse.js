@@ -261,7 +261,7 @@ export default class Message extends CustomElement {
                 const msgId = reply.msgId;
                 const stanzaId = reply.stanzaId;
                 const jid = reply.from_jid;
-                const time = new Date(stanzaId / 1000).toISOString();
+                const time = stanzaId ? new Date(stanzaId / 1000).toISOString() : '';
 
                 _converse.api.trigger('navigationToMessage', {view, msgId, jid, time, stanzaId});
             }

@@ -31,7 +31,15 @@
             _converse.api.listen.on('getMessageActionButtons', (el, buttons) => {
 
                 if (_converse.api.settings.get("actions_reply") === true) {
-                    buttons.push({'i18n_text': __('Reply'),   'handler': ev => handleReplyAction(el.model), 'button_class': 'chat-msg__action-reply', 'icon_class': 'fas fa-arrow-left',  'name': 'action-reply'});
+                    if (!(el.model.get('type') === 'chat' && el.model.get('sender') === 'me')) {
+                        buttons.push({
+                            'i18n_text': __('Reply'),
+                            'handler': ev => handleReplyAction(el.model),
+                            'button_class': 'chat-msg__action-reply',
+                            'icon_class': 'fas fa-arrow-left',
+                            'name': 'action-reply'
+                        });
+                    }
                 }
 
                 const reactions = _converse.api.settings.get("actions_reactions");
