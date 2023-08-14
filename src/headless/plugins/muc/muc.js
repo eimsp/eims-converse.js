@@ -1052,6 +1052,7 @@ const ChatRoomMixin = {
             is_spoiler,
             references,
             reply,
+            origin_id,
             'id': origin_id,
             'msgid': origin_id,
             'from': `${this.get('jid')}/${this.get('nick')}`,
