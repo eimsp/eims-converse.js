@@ -244,18 +244,24 @@ export default class MessageForm extends ElementView {
         this.querySelector('converse-emoji-dropdown')?.hideMenu();
 
         const is_command = await parseMessageForCommands(this.model, message_text);
-        const is_private = parseMessageForPrivate(message_text);
-        const is_reply = parseMessageForReply(this.model, message_text, is_private);
+        const privateMsg = parseMessageForPrivate(message_text);
+
+        const reply = this.model.get('reply');
+        let reply_info;
+        if(reply?.message && message_text.indexOf(reply.message) !== -1){
+            reply_info = parseMessageForReply(this.model, message_text, privateMsg);
+        }else{
+            this.model.set({'reply': null});
+        }
 
         let message = null;
-        if(is_private){
-            message = await this.model.sendPrivateMessage({'body': is_private.text, 'recipient': is_private.recipient, spoiler_hint, 'reply': is_reply});
-        }else if(is_reply?.message == ''){
+        if(privateMsg){
+            message = await this.model.sendPrivateMessage({'body': privateMsg.text, 'recipient': privateMsg.recipient, spoiler_hint, 'reply': reply_info});
+        }else if(reply_info?.message === ''){
             message = null;
         }else if(!is_command){
-            message = await this.model.sendMessage({'body': message_text, spoiler_hint, 'reply': is_reply});
+            message = await this.model.sendMessage({'body': message_text, spoiler_hint, 'reply': reply_info});
         }
-        //const message = is_command ? null : await this.model.sendMessage({'body': message_text, spoiler_hint});
 
         if (is_command || message) {
             hint_el.value = '';
@@ -265,12 +271,10 @@ export default class MessageForm extends ElementView {
 
             sessionStorage.removeItem(this.getKeyForDraftMsg());
 
-            this.model.set({'reply': ''});
-
             this.model.set({'draft': ''});
         }
-        if(!is_reply){
-            this.model.set({'reply': ''});
+        if(!reply_info) {
+            this.model.set({'reply': null});
         }
         if (api.settings.get('view_mode') === 'overlayed') {
             // XXX: Chrome flexbug workaround. The .chat-content area

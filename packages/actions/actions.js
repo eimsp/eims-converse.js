@@ -194,10 +194,12 @@
             const key = Object.keys(model.attributes).filter(k => k.startsWith('stanza_id '));
             const stanzaId = model.get(key[0]);
             const msgId = model.get('msgid');
+            const message = model.get('body');
             if (textArea) {
-                textArea.value = normalizeReplyTextMention(model, nick, text);
+                const normalize_text = normalizeReplyTextMention(model, nick, text);
+                textArea.value = normalize_text.text;
                 const from_jid = model.get('from_real_jid') || model.get('from');
-                box.model.set({reply: {from_jid, msgId, stanzaId}});
+                box.model.set({reply: {from_jid, msgId, stanzaId, message, start: 0, end: normalize_text.text_length}});
             }
         }
     }
@@ -220,14 +222,23 @@
     }
 
     function normalizeReplyTextMention(model, nick, message) {
-        const regex = />[^>]+?\n(.*)/;
-        const quote = message.match(regex);
+        let reply_text = message;
+        if(model.get('reply')){
+            reply_text = message.substring(model.get('reply').end);
+        }else {
+            const regex = />[^>]+?\n(.*)/;
+            const quote = message.match(regex);
 
-        if(quote && quote.length > 1){
-            message = quote[1];
+            if (quote && quote.length > 1) {
+                reply_text = quote[1];
+            }
         }
         const text = model.get('type') === 'chat' ? '!@' + nick + '\n' : '';
-        return text + '>' + nick + ' : ' + message + '\n';
+        const msg = '>' + nick + ' : ' + reply_text + '\n';
+        return {
+            text: text + msg,
+            text_length: msg.length
+        }
     }
 
     function getTargetJidFromMessageModel(model) {

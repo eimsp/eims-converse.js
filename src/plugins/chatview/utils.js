@@ -29,14 +29,14 @@ export function parseMessageForReply(chat, text, is_private) {
     const match = str.match(regex);
     const reply_info = chat?.get('reply');
 
-    if (match && match.length > 1 && reply_info.msgId) {
-        const message = !match[1] ? '': match[2];
+    if (reply_info && reply_info.msgId) {
+        const msg = str.substring(reply_info.end);
         return {
-            'message': message,
+            'message': msg,
             'msgId': reply_info.msgId,
             'stanzaId': reply_info.stanzaId,
             'from_jid': reply_info.from_jid,
-            'end': match[0].length - message.length
+            'end': reply_info.end
         };
     }
 }
