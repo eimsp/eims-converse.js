@@ -17,11 +17,20 @@ export function getPlaceholderTemplate (message, tpl) {
 
 export async function fetchMessagesOnClick(opt){
     const view = opt.view;
-    const msgId = opt.msgId;
-
-    //find message in already fetched
     const messages = view.model.messages;
-    const msg = messages.models.find(m => m.get('msgid') === msgId);
+    let msgId = opt.msgId;
+    let msg;
+
+    // case of private messages from bot, they have message id format - 'timestamp-msgId'
+    const splitMsgId = msgId.split('-');
+    if(splitMsgId.length === 6){
+        const msgTimestamp = splitMsgId[0];
+        msg = messages.models.find(m => m.get('msgid').indexOf(msgTimestamp) !== -1 );
+        msgId = msg?.get('msgid');
+    }else {
+        //find message in already fetched
+        msg = messages.models.find(m => m.get('msgid') === msgId);
+    }
 
     if (msg) {
         setFocusToMessage(msgId);
