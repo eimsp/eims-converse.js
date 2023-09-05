@@ -232,7 +232,7 @@
                 reply_text = quote[1];
             }
         }
-        reply_text = reply_text.replace(/(\r\n|\n|\r)/gm, ' ');
+        reply_text = reply_text.replace(/(\r\n|\n|\r)/gm, ' \u23ce  ');
         reply_text = reply_text.length > 60 ? reply_text.substring(0, 60) + '...': reply_text;
         const text = model.get('type') === 'chat' ? '!@' + nick + '\n' : '';
         const msg = '>' + nick + ' : ' + reply_text + '\n';
