@@ -4,6 +4,7 @@ import { __ } from 'i18n';
 import { _converse, api, converse } from "@converse/headless/core.js";
 import { parseMessageForCommands } from './utils.js';
 import { parseMessageForPrivate } from './utils.js';
+import { parseMessageForReply } from './utils.js';
 import { prefixMentions } from '@converse/headless/utils/core.js';
 import debounce from 'lodash-es/debounce';
 import { resetElementHeight } from 'plugins/chatview/utils.js';
@@ -243,15 +244,24 @@ export default class MessageForm extends ElementView {
         this.querySelector('converse-emoji-dropdown')?.hideMenu();
 
         const is_command = await parseMessageForCommands(this.model, message_text);
+        const privateMsg = parseMessageForPrivate(message_text);
 
-        const is_private = parseMessageForPrivate(message_text);
-        let message = null;
-        if(is_private){
-            message = await this.model.sendPrivateMessage({'body': is_private.text, 'recipient': is_private.recipient, spoiler_hint});
-        }else if(!is_command){
-            message = await this.model.sendMessage({'body': message_text, spoiler_hint});
+        const reply = this.model.get('reply');
+        let reply_info;
+        if(reply?.message && message_text.indexOf(reply.message) !== -1){
+            reply_info = parseMessageForReply(this.model, message_text, privateMsg);
+        }else{
+            this.model.set({'reply': null});
         }
-        //const message = is_command ? null : await this.model.sendMessage({'body': message_text, spoiler_hint});
+
+        let message = null;
+        if(privateMsg){
+            message = await this.model.sendPrivateMessage({'body': privateMsg.text, 'recipient': privateMsg.recipient, spoiler_hint, 'reply': reply_info});
+        }else if(reply_info?.message === ''){
+            message = null;
+        }else if(!is_command){
+            message = await this.model.sendMessage({'body': message_text, spoiler_hint, 'reply': reply_info});
+        }
 
         if (is_command || message) {
             hint_el.value = '';
@@ -262,6 +272,9 @@ export default class MessageForm extends ElementView {
             sessionStorage.removeItem(this.getKeyForDraftMsg());
 
             this.model.set({'draft': ''});
+        }
+        if(!reply_info) {
+            this.model.set({'reply': null});
         }
         if (api.settings.get('view_mode') === 'overlayed') {
             // XXX: Chrome flexbug workaround. The .chat-content area

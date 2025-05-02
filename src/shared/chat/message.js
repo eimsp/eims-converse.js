@@ -251,6 +251,23 @@ export default class Message extends CustomElement {
         }
     }
 
+    async onTextClick (ev) {
+        //click on blockquote
+        if(ev.target.tagName === 'BLOCKQUOTE'){
+            ev.preventDefault();
+            const reply = this.model?.get('reply');
+            if(reply && reply.msgId){
+                const view = _converse.chatboxviews.get(this.getAttribute('jid'));
+                const msgId = reply.msgId;
+                const stanzaId = reply.stanzaId;
+                const jid = reply.from_jid;
+                const time = stanzaId ? new Date(stanzaId / 1000).toISOString() : '';
+
+                _converse.api.trigger('navigationToMessage', {view, msgId, jid, time, stanzaId});
+            }
+        }
+    }
+
     showMessageVersionsModal (ev) {
         ev.preventDefault();
         api.modal.show('converse-message-versions-modal', {'model': this.model}, ev);

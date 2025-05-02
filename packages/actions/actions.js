@@ -31,7 +31,15 @@
             _converse.api.listen.on('getMessageActionButtons', (el, buttons) => {
 
                 if (_converse.api.settings.get("actions_reply") === true) {
-                    buttons.push({'i18n_text': __('Reply'),   'handler': ev => handleReplyAction(el.model), 'button_class': 'chat-msg__action-reply', 'icon_class': 'fas fa-arrow-left',  'name': 'action-reply'});
+                    if (!(el.model.get('type') === 'chat' && el.model.get('sender') === 'me')) {
+                        buttons.push({
+                            'i18n_text': __('Reply'),
+                            'handler': ev => handleReplyAction(el.model),
+                            'button_class': 'chat-msg__action-reply',
+                            'icon_class': 'fas fa-arrow-left',
+                            'name': 'action-reply'
+                        });
+                    }
                 }
 
                 const reactions = _converse.api.settings.get("actions_reactions");
@@ -137,7 +145,7 @@
         console.debug('handleReplyAction', model)
 
         let selectedText = window.getSelection().toString();
-        const nick = model.get('nick') || model.get('nickname');
+        const nick = model.getDisplayName();
 
         if (!selectedText || selectedText === '') selectedText = model.get('message');
         replyChat(model, nick, selectedText);
@@ -183,7 +191,15 @@
         if (box)
         {
             const textArea = box.querySelector('.chat-textarea');
-            if (textArea) textArea.value = normalizeTextMention(nick, text);
+            const key = Object.keys(model.attributes).filter(k => k.startsWith('stanza_id '));
+            const stanzaId = model.get(key[0]);
+            const msgId = model.get('msgid');
+            if (textArea) {
+                const normalize_text = normalizeReplyTextMention(model, nick, text);
+                textArea.value = normalize_text.text;
+                const from_jid = model.get('from_real_jid') || model.get('from');
+                box.model.set({reply: {from_jid, msgId, stanzaId, message: normalize_text.text, start: 0, end: normalize_text.text_length}});
+            }
         }
     }
 
@@ -194,17 +210,46 @@
     }
 
     function normalizeTextMention(nick, message) {
-        return ">" + nick + ' : ' + message.replace(/^[>]/,"\n>").replace(/\n/g, "\n>") + "\n";
+        const regex = />[^>]+?\n(.*)/;
+        const quote = message.match(regex);
+
+        if(quote && quote.length > 1){
+            message = quote[1];
+        }
+
+        return ">" + nick + ' : ' + message.replace(/^>/,"\n>") + "\n";
+    }
+
+    function normalizeReplyTextMention(model, nick, message) {
+        let reply_text = message;
+        if(model.get('reply')){
+            reply_text = message.substring(model.get('reply').end);
+        }else {
+            const regex = />[^>]+?\n(.*)/;
+            const quote = message.match(regex);
+
+            if (quote && quote.length > 1) {
+                reply_text = quote[1];
+            }
+        }
+        reply_text = reply_text.replace(/(\r\n|\n|\r)/gm, ' \u23ce  ');
+        reply_text = reply_text.length > 60 ? reply_text.substring(0, 60) + '...': reply_text;
+        const text = model.get('type') === 'chat' ? '!@' + nick + '\n' : '';
+        const msg = '>' + nick + ' : ' + reply_text + '\n';
+        return {
+            text: text + msg,
+            text_length: msg.length
+        }
     }
 
     function getTargetJidFromMessageModel(model) {
         const type = model.get("type");
         let target = model.get('from_muc');
         if (type === "chat")  {
-            target = model.get('jid');
-            if (model.get('sender') === 'them') {
-                target = model.get('from');
-            }
+            target = model.get('jid') || model.chatbox.get('jid');
+            //if (model.get('sender') === 'them') {
+              //  target = model.get('from');
+            //}
         }
         return target;
     }

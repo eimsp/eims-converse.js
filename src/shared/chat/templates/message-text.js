@@ -37,6 +37,7 @@ export default (el) => {
         <span class="chat-msg__body--wrapper">
             <converse-chat-message-body
                 class="chat-msg__text ${el.model.get('is_only_emojis') ? 'chat-msg__text--larger' : ''} ${spoiler_classes}"
+                @click=${el.onTextClick}
                 .model="${el.model}"
                 hide_url_previews=${el.model.get('hide_url_previews')}
                 ?is_me_message=${el.model.isMeCommand()}

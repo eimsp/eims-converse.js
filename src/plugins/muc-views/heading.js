@@ -101,14 +101,14 @@ export default class MUCHeading extends CustomElement {
             });
         }
 
-        buttons.push({
+        /*buttons.push({
             'i18n_text': __('Nickname'),
             'i18n_title': __("Change the nickname you're using in this groupchat"),
             'handler': ev => api.modal.show('converse-muc-nickname-modal', { 'model': this.model }, ev),
             'a_class': 'open-nickname-modal',
             'icon_class': 'fa-smile',
             'name': 'nickname'
-        });
+        });*/
 
         if (this.model.invitesAllowed()) {
             buttons.push({
