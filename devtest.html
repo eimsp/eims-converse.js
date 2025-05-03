@@ -1,122 +1,171 @@
 <!doctype html>
 <html class="no-js" lang="en">
 <head>
-    <title>Converse</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Converse</title>
     <meta name="description" content="Converse XMPP/Jabber Chat"/>
-    <link rel="shortcut icon" type="image/ico" href="images/favicon.ico"/>
-    <link rel="stylesheet" type="text/css" media="screen" href="dist/converse.min.css">
-    <script src="dist/converse.min.js" charset="utf-8"></script>
+    <link rel="shortcut icon" type="image/ico" href="favicon.ico"/>
+    <link type="text/css" rel="stylesheet" media="screen" href="./dist/converse.css" />
+    <script src="https://conversejs.org/3rdparty/libsignal-protocol.min.js"></script>
+    <script src="./dist/converse.js"></script>
 
-    <script src="/packages/actions/actions.js"></script>
-    <link type="text/css" rel="stylesheet" media="screen" href="https://chattest.deribit.com/packages/search/search.css" />
-    <script src="https://chattest.deribit.com/packages/search/jspdf.debug.js"></script>
-    <script src="https://chattest.deribit.com/packages/search/jspdf.plugin.autotable.js"></script>
-    <script src="/packages/search/search.js"></script>
+    <script src="packages/download-dialog/dist/download-dialog.js"></script>
+    <script src="packages/toolbar-utilities/toolbar-utilities.js"></script>
+    <script src="packages/location/location.js"></script>
+    <script src="packages/jitsimeet/jitsimeet.js"></script>
+    <script src="packages/screencast/screencast.js"></script>
+    <script src="packages/vmsg/vmsg.js"></script>
+
+    <link type="text/css" rel="stylesheet" media="screen" href="packages/stickers/stickers.css" />
+    <script src="packages/stickers/stickers.js"></script>
+
+    <script src="packages/muc-directory/muc-directory.js"></script>
+    <link type="text/css" rel="stylesheet" media="screen" href="packages/muc-directory/muc-directory.css" />
+
+    <link type="text/css" rel="stylesheet" media="screen" href="packages/search/search.css" />
+    <script src="packages/search/jspdf.debug.js"></script>
+    <script src="packages/search/jspdf.plugin.autotable.js"></script>
+    <script src="packages/search/search.js"></script>
+
+    <!--link type="text/css" rel="stylesheet" media="screen" href="packages/directory/directory.css" />
+    <script-- src="packages/directory/directory.js"></script-->
+
+    <script src="packages/diagrams/mermaid.min.js"></script>
+    <script src="packages/diagrams/diagrams.js"></script>
+    <script src="packages/diagrams/abcjs.js"></script>
+
+    <script src="packages/http-auth/http-auth.js"></script>
+    <script src="packages/actions/actions.js"></script>
+
+    <!--link type="text/css" rel="stylesheet" media="screen" href="packages/voicechat/voicechat.css" />
+    <script src="packages/voicechat/hark.js"></script>
+    <script src="packages/voicecha t/jquery-3.5.1.min.js"></script>
+    <script src="packages/voicechat/lib-jitsi-meet.min.js"></script>
+    <script src="packages/voicechat/voicechat.js"></script-->
+
+    <!--link type="text/css" rel="stylesheet" media="screen" href="packages/adaptive-cards/adaptivecards.css" />
+    <script src="packages/adaptive-cards/adaptivecards.min.js"></script>
+    <script src="packages/adaptive-cards/markdown-it.min.js"></script>
+    <script src="packages/adaptive-cards/adaptive-cards.js"></script-->
+
+    <!-- link type="text/css" rel="stylesheet" media="screen" href="packages/polls/polls.css" />
+    <script src="packages/polls/polls.js"></script -->
+
+    <!--script src="packages/galene/galene.js"></script-->
+
 </head>
-<body class="converse-fullscreen">
-<noscript>You need to enable JavaScript to run the Converse.js chat app.</noscript>
-<div id="conversejs-bg"></div>
+<body class="reset">
+    <div class="converse-content" style="display:none">
+        <div class="inner-content converse-brand row">
+            <div class="converse-brand__padding"></div>
+            <div class="converse-brand__heading">
+                <div class="converse-brand__text"><i class="icon-conversejs"></i>Converse</div>
+            </div>
+        </div>
+    </div>
+    <noscript>You need to enable JavaScript to run the Converse.js chat app.</noscript>
+    <div id="conversejs"></div>
 <script>
-var configProtocol = (window.location.protocol === 'https:') ? 'wss://' : 'ws://';
-var domainForConverse = 'chattest.deribit.com';
-var mucDomain = `conference.${domainForConverse}`;
-var configURL = 'wss://chattest.deribit.com:5443/ws';
+    var configProtocol = (window.location.protocol === 'https:') ? 'wss://' : 'ws://';
+    var domainForConverse = window.location.hostname;
+    var mucDomain = `conference.${domainForConverse}`;
+    var configURL = configProtocol + window.location.host + '/ws';
 
-converse.plugins.add('converse-debug', {
-    initialize () {
-        const { _converse } = this;
-        window._converse = _converse;
-    }
-});
+    converse.plugins.add('converse-debug', {
+        initialize () {
+            const { _converse } = this;
+            window._converse = _converse;
+        }
+    });
 
-converse.plugins.add('deribit', {
-    initialize: function () {
-        this._converse.api.elements.registry['converse-muc-chatarea'].prototype.getHelpMessages =
-          function () {
-              return [
-                  `<strong>help menu triggered by /help</strong>`,
-                  ``,
-                  `<strong>command list private:</strong>`,
-                  `<strong>/position [instrument_name]</strong> =  show position`,
-                  `<strong>/deribit_summary [currency] [extended]</strong> = show account summary`,
-                  `<strong>/lastmsg del</strong> = delete last message`,
-                  `<strong>/lastmsg edit</strong> = edit last message to new message`,
-                  `<strong>/trade_volumes</strong> = show trade volumes`,
-                  `<strong>//help</strong>= show all commands`,
-//                        `<strong>/futures</strong> = show futures`,
-                  ``,
-                  `<strong>command list public:</strong>`,
-                  `<strong>/!position [instrument_name]</strong> = show position`,
-//                        `<strong>/!futures</strong> = show futures`,
-                  `<strong>/!trade_volumes</strong> = show trade volumes`
-              ];
-          }
-    }
-});
-converse.initialize({
-    whitelisted_plugins: ["deribit",
-//          "download-dialog",
-        "stickers",
-        "toolbar-utilities",
-        "search",
+    converse.plugins.add('eims', {
+        initialize: function () {
+            this._converse.api.elements.registry['converse-muc-chatarea'].prototype.getHelpMessages =
+              function () {
+                  return [
+                      `<strong>help menu triggered by /help</strong>`,
+                      ``,
+                      `<strong>command list private:</strong>`,
+                      // `<strong>/position [instrument_name]</strong> =  show position`,
+                      // `<strong>/iservice_summary [currency] [extended]</strong> = show account summary`,
+                      `<strong>/lastmsg del</strong> = delete last message`,
+                      `<strong>/lastmsg edit</strong> = edit last message to new message`,
+                      `<strong>/trade_volumes</strong> = show trade volumes`,
+                      `<strong>//help</strong>= show all commands`
+    //                        `<strong>/futures</strong> = show futures`,
+    //                   ``,
+    //                   `<strong>command list public:</strong>`,
+    //                   `<strong>/!position [instrument_name]</strong> = show position`,
+    //                        `<strong>/!futures</strong> = show futures`,
+    //                   `<strong>/!trade_volumes</strong> = show trade volumes`
+                  ];
+              }
+        }
+    });
+    converse.initialize({
+        whitelisted_plugins: ["eims",
+    //          "download-dialog",
+            "stickers",
+            "toolbar-utilities",
+            "search",
 //            "directory",
-        "muc-directory",
-        "diagrams",
-        "vmsg",
-        "screencast",
-        "jitsimeet",
-        //           "location",
-        "http-auth",
-        "actions",
+            "muc-directory",
+            "diagrams",
+            "vmsg",
+            "screencast",
+            "jitsimeet",
+ //           "location",
+            "http-auth",
+            "actions",
 //            "voicechat",
 //            "galene"
-        //"polls",
-        //"adaptive-cards"
-    ],
-    loglevel: 'debug',
-    debug: false,
-    authentication: 'login',
-    auto_reconnect: true,
-    auto_away: 90,
-    theme: 'dracula',
-    keepalive: true,
-    show_controlbox_by_default: false,
-    strict_plugin_dependencies: false,
+            //"polls",
+            //"adaptive-cards"
+             ],
+        loglevel: 'debug',
+        debug: false,
+        authentication: 'login',
+        auto_reconnect: true,
+        auto_away: 60,
+        theme: 'dracula',
+        keepalive: true,
+        show_controlbox_by_default: false,
+        strict_plugin_dependencies: false,
 
-    show_desktop_notifications: true,
-    ping_interval: 53,
-    muc_show_info_messages: [],
-    muc_show_logs_before_join: true,
-    allow_registration: false,
-    websocket_url: configURL,
-    message_archiving: 'always',
-    play_sounds: true,
-    notify_all_room_messages: true,
-    view_mode: 'fullscreen',
-    allow_adhoc_commands: true,
-    allow_bookmarks: true,
-    allow_message_corrections: 'all',
-    allow_message_retraction: 'all',
-    allow_chat_pending_contacts: true,
-    archived_messages_page_size: 50,
-    auto_list_rooms: true,
-    default_domain: domainForConverse,
-    domain_placeholder: domainForConverse,
-    enable_muc_push: true,
-    enable_smacks: true,
-    locked_domain: domainForConverse,
-    locked_muc_domain: true,
-    muc_domain: mucDomain,
-    message_limit: 2048,
-    hide_offline_users: true,
-    clear_cache_on_logout: true,
-    allow_non_roster_messaging: true,
-    muc_skip_usr_commands_msg: ['del', 'edit', 'post', 'purge'],
-    muc_disable_slash_commands: ['help', 'subject', 'topic', 'admin', 'ban', 'clear', 'deop', 'destroy', 'kick', 'me', 'member', 'modtools', 'mute', 'nick', 'op', 'owner', 'register', 'revoke','voice'],
-    muc_history_max_stanzas: 0
-});
+        show_desktop_notifications: true,
+        ping_interval: 53,
+        muc_show_info_messages: [],
+        muc_show_logs_before_join: true,
+        allow_registration: false,
+        websocket_url: configURL,
+        message_archiving: 'always',
+        play_sounds: true,
+        notify_all_room_messages: true,
+        view_mode: 'fullscreen',
+        allow_adhoc_commands: true,
+        allow_bookmarks: true,
+        allow_message_corrections: 'all',
+        allow_message_retraction: 'all',
+        allow_chat_pending_contacts: true,
+        archived_messages_page_size: 50,
+        auto_list_rooms: true,
+        default_domain: domainForConverse,
+        domain_placeholder: domainForConverse,
+        enable_muc_push: true,
+        enable_smacks: true,
+        locked_domain: domainForConverse,
+        locked_muc_domain: true,
+        muc_domain: mucDomain,
+        message_limit: 2048,
+        hide_offline_users: true,
+        locked_muc_nickname: true,
+        clear_cache_on_logout: true,
+        allow_non_roster_messaging: true,
+        muc_skip_usr_commands_msg: ['del', 'edit', 'post', 'purge'],
+        muc_disable_slash_commands: ['help', 'subject', 'topic', 'admin', 'ban', 'clear', 'deop', 'destroy', 'kick', 'me', 'member', 'modtools', 'mute', 'nick', 'op', 'owner', 'register', 'revoke','voice'],
+        muc_history_max_stanzas: 0
+    });
 </script>
 </body>
 </html>

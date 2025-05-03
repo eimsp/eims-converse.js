@@ -23,7 +23,7 @@
     var domainForConverse = window.location.hostname;
     var mucDomain = `conference.${domainForConverse}`;
     var configURL = configProtocol + window.location.host + '/ws';
-    converse.plugins.add('deribit', {
+    converse.plugins.add('eims', {
         initialize: function () {
             this._converse.api.elements.registry['converse-muc-chatarea'].prototype.getHelpMessages =
                 function () {
@@ -31,36 +31,47 @@
                          `<strong>help menu triggered by /help</strong>`,
                         ``,
                         `<strong>command list private:</strong>`,
-                        `<strong>/position [instrument_name]</strong> =  show position`,
-                        `<strong>/deribit_summary [currency] [extended]</strong> = show account summary`,
+                        // `<strong>/position [instrument_name]</strong> =  show position`,
+                        // `<strong>/iservice_summary [currency] [extended]</strong> = show account summary`,
                         `<strong>/lastmsg del</strong> = delete last message`,
                         `<strong>/lastmsg edit</strong> = edit last message to new message`,
-                        `<strong>/trade_volumes</strong> = show trade volumes`,
-                        `<strong>//help</strong>= show all commands`,
+                        // `<strong>/trade_volumes</strong> = show trade volumes`,
+                        `<strong>//help</strong>= show all commands`
 //                        `<strong>/futures</strong> = show futures`,
-                        ``,
-                        `<strong>command list public:</strong>`,
-                        `<strong>/!position [instrument_name]</strong> = show position`,
+//                         ``,
+                        // `<strong>command list public:</strong>`,
+                        // `<strong>/!position [instrument_name]</strong> = show position`,
 //                        `<strong>/!futures</strong> = show futures`,
-                        `<strong>/!trade_volumes</strong> = show trade volumes`
+//                         `<strong>/!trade_volumes</strong> = show trade volumes`
                         ];
                 }
         }
     });
     converse.initialize({
-        whitelisted_plugins: ['deribit','search', 'actions'],
+        whitelisted_plugins: ['eims','search', 'actions'],
         loglevel: 'debug',
+        debug: false,
         authentication: 'login',
+        auto_reconnect: true,
         auto_away: 60,
         theme: 'dracula',
         keepalive: true,
+        show_controlbox_by_default: false,
+        strict_plugin_dependencies: false,
+
         show_desktop_notifications: true,
-        ping_interval: 20,
+        ping_interval: 53,
         muc_show_info_messages: [],
         muc_show_logs_before_join: true,
         allow_registration: false,
-        auto_reconnect: true,
         websocket_url: configURL,
+        // auto_join_rooms: [
+        //     'test@conference.localhost',
+        // ],
+        // notify_all_room_messages: [
+        //     'test@conference.localhost',
+        // ],
+
         message_archiving: 'always',
         play_sounds: true,
         notify_all_room_messages: true,
@@ -69,6 +80,7 @@
         allow_bookmarks: true,
         allow_message_corrections: 'all',
         allow_message_retraction: 'all',
+        allow_chat_pending_contacts: true,
         archived_messages_page_size: 50,
         auto_list_rooms: true,
         default_domain: domainForConverse,
@@ -80,7 +92,9 @@
         muc_domain: mucDomain,
         message_limit: 2048,
         hide_offline_users: true,
+        clear_cache_on_logout: true,
         allow_non_roster_messaging: true,
+        muc_skip_usr_commands_msg: ['del', 'edit', 'post'],
         muc_disable_slash_commands: ['help', 'subject', 'topic', 'admin', 'ban', 'clear', 'deop', 'destroy', 'kick', 'me', 'member', 'modtools', 'mute', 'nick', 'op', 'owner', 'register', 'revoke','voice'],
         muc_history_max_stanzas: 0
     });
